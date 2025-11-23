@@ -25,7 +25,7 @@ export default function Navbar() {
                         <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
                             <Link
                                 href="/"
-                                className="border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-color-white"
+                                className="border-[#A0FAFFFF] font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-color-white"
                             >
                                 Home
                             </Link>
