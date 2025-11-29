@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { Bell, GraduationCap, Search } from 'lucide-react';
-import { students as initialStudents, courses as initialCourses, Student, NewStudent, Course } from '@/app/lib/mockData';
+import { students as initialStudents, courses as initialCourses, studentEnrollments as initialEnrollments, Student, NewStudent, Course, CourseEnrollment } from '@/app/lib/mockData';
 import Modal from '@/modals/AddModal';
 import EnrollStudent from '@/components/dashboard/EnrollStudent';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>(initialStudents ?? []);
   const [courses, setCourses] = useState<Course[]>(initialCourses ?? []);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>(initialEnrollments ?? []);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -61,7 +62,24 @@ export default function StudentsPage() {
   const handleEnrollStudent = (courseId: number, studentId: string) => {
     const course = courses.find(c => c.id === courseId);
     const student = students.find(s => s.id === studentId);
+
+    // create a new enrollment record and append to enrollments state
+    const nextId = (enrollments?.length ? Math.max(...enrollments.map(e => Number(e.id))) + 1 : Date.now());
+    const newEnrollment: CourseEnrollment = {
+      id: Number(nextId),
+      course_id: courseId,
+      student_id: studentId,
+      enrolled_at: new Date().toISOString(),
+      progress: 0,
+    };
+    setEnrollments((prev) => [newEnrollment, ...prev]);
     alert(`${student?.name ?? 'Student'} enrolled in ${course?.title ?? 'course'}`);
+  };
+
+  const handleDeleteEnrollment = (enrollmentId: number) => {
+    if (!confirm('Delete this enrollment?')) return;
+    setEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId));
+    alert('Enrollment removed');
   };
 
   
@@ -185,6 +203,70 @@ export default function StudentsPage() {
           <aside className="w-80">
             <EnrollStudent courses={courses} students={students} onEnroll={handleEnrollStudent} />
           </aside>
+        </div>
+      </div>
+      {/* Enrollments Table (aligned width with Students table) */}
+      <div className="p-8">
+        <div className="flex gap-6">
+          <div className="flex-1">
+            <div className="bg-white rounded-lg border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Enrollments</h3>
+                    <p className="text-xs text-gray-500">Recent enrollments made by the admin.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">ID</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Student</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Course</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Enrolled At</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {enrollments.map((enr) => {
+                      const student = students.find((s) => s.id === enr.student_id);
+                      const course = courses.find((c) => c.id === enr.course_id);
+                      return (
+                        <tr key={String(enr.id)} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 table-text">{enr.id}</td>
+                          <td className="px-4 py-2 table-text">{student?.name ?? enr.student_id}</td>
+                          <td className="px-4 py-2 table-text">{course?.title ?? `#${enr.course_id}`}</td>
+                          <td className="px-4 py-2 table-text">{enr.enrolled_at ? new Date(enr.enrolled_at).toLocaleString() : '-'}</td>
+                          <td className="px-4 py-2">
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => handleDeleteEnrollment(Number(enr.id))}
+                                className="text-xs text-red-600 hover:text-red-800"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {enrollments.length === 0 && (
+                <div className="px-6 py-12 text-center text-gray-500">No enrollments yet.</div>
+              )}
+
+              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <p className="text-sm text-gray-600">Showing {enrollments.length} enrollments</p>
+              </div>
+            </div>
+          </div>
+          <aside className="w-80" />
         </div>
       </div>
 

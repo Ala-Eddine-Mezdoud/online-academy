@@ -1,40 +1,33 @@
 "use client";
 import React, { useState } from 'react';
-import { Notification as ApiNotification } from '@/app/lib/api';
-import { markNotificationRead, deleteNotification } from '@/app/lib/notifications.client';
 import { Check, Trash2 } from 'lucide-react';
+import { notifications as initialNotifications } from '@/app/lib/mockData';
+
+interface NotificationItem {
+  id: string;
+  message: string;
+  createdAt: string;
+  read?: boolean;
+}
 
 interface Props {
-  initial: ApiNotification[];
+  // allow passing an initial list (optional) but fall back to mockData
+  initial?: NotificationItem[];
   fullWidth?: boolean;
 }
 
 export default function NotificationsList({ initial, fullWidth }: Props) {
-  const [items, setItems] = useState<ApiNotification[]>(initial ?? []);
+  const [items, setItems] = useState<NotificationItem[]>(
+    (initial && initial.length ? initial : initialNotifications) ?? []
+  );
 
-  const handleMarkRead = async (id: string) => {
-    // optimistic update
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, read: true } : it)));
-    try {
-      // notifications.client expects numeric id if DB uses integer, but our mock uses string - handle gracefully
-      // try to call markNotificationRead if available
-      // @ts-ignore
-      await markNotificationRead(Number(id), true);
-    } catch (err) {
-      // ignore - in mock environment we'll rely on local state
-      // console.warn(err);
-    }
+  const handleMarkRead = (id: string) => {
+    setItems((prev) => prev.map((it) => (String(it.id) === String(id) ? { ...it, read: true } : it)));
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm('Delete this notification?')) return;
-    setItems((prev) => prev.filter((it) => it.id !== id));
-    try {
-      // @ts-ignore
-      await deleteNotification(Number(id));
-    } catch (err) {
-      // ignore
-    }
+    setItems((prev) => prev.filter((it) => String(it.id) !== String(id)));
   };
 
   if (!items || items.length === 0) {
