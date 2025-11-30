@@ -100,7 +100,7 @@ const instructors = [
 
 export default function Course() {
   return (
-    <section className="space-y-10 pt-12 bg-white pd-8 px-8 gap-14 md:px-24">
+    <section className="space-y-10 bg-white py-8 px-8 md:px-24">
       <header className="space-y-4">
         <h1 className="text-5xl font-bold text-slate-900">
           Explore Our Courses

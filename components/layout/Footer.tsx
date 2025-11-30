@@ -2,34 +2,34 @@ import Link from 'next/link';
 
 export default function Footer() {
     return (
-        <footer className="bg-black text-white">
+        <footer className="bg-white text-gray-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+                    
                     {/* Company Info */}
                     <div className="col-span-1 md:col-span-2">
-                        <h3 className="text-2xl font-bold mb-4 text-[#A0FAFFFF]">EduConnect</h3>
-                        <p className="text-gray-400 mb-4">
+                        <h3 className="text-2xl font-bold mb-4 text-[#00A5B5]">EduConnect</h3>
+                        <p className="text-gray-600 mb-4">
                             Empowering learners worldwide with quality education and innovative courses.
                         </p>
-
                     </div>
 
                     {/* Company */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-4">Company</h4>
+                        <h4 className="text-lg font-semibold mb-4 text-gray-900">Company</h4>
                         <ul className="space-y-2">
                             <li>
-                                <Link href="/" className="text-gray-400 hover:text-white transition">
+                                <Link href="/" className="text-gray-600 hover:text-gray-900 transition">
                                     Home
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/about" className="text-gray-400 hover:text-white transition">
+                                <Link href="/about" className="text-gray-600 hover:text-gray-900 transition">
                                     About Us
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/contact" className="text-gray-400 hover:text-white transition">
+                                <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition">
                                     Contact Us
                                 </Link>
                             </li>
@@ -38,20 +38,20 @@ export default function Footer() {
 
                     {/* Courses */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-4">Courses</h4>
+                        <h4 className="text-lg font-semibold mb-4 text-gray-900">Courses</h4>
                         <ul className="space-y-2">
                             <li>
-                                <Link href="/courses" className="text-gray-400 hover:text-white transition">
+                                <Link href="/courses" className="text-gray-600 hover:text-gray-900 transition">
                                     All Courses
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/teachers" className="text-gray-400 hover:text-white transition">
+                                <Link href="/teachers" className="text-gray-600 hover:text-gray-900 transition">
                                     Teachers
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/courses/popular" className="text-gray-400 hover:text-white transition">
+                                <Link href="/courses/popular" className="text-gray-600 hover:text-gray-900 transition">
                                     Popular Courses
                                 </Link>
                             </li>
@@ -60,15 +60,15 @@ export default function Footer() {
 
                     {/* Legal */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-4">Legal</h4>
+                        <h4 className="text-lg font-semibold mb-4 text-gray-900">Legal</h4>
                         <ul className="space-y-2">
                             <li>
-                                <Link href="/privacy" className="text-gray-400 hover:text-white transition">
+                                <Link href="/privacy" className="text-gray-600 hover:text-gray-900 transition">
                                     Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/terms" className="text-gray-400 hover:text-white transition">
+                                <Link href="/terms" className="text-gray-600 hover:text-gray-900 transition">
                                     Terms of Service
                                 </Link>
                             </li>
@@ -77,10 +77,13 @@ export default function Footer() {
                 </div>
 
                 <div>
-                    <p className='
+                    <p className="
                         text-xl leading-[24px] font-semibold pb-6 mt-8
-                        text-[#BDC1CA]'>
-                        Connect with us</p>
+                        text-gray-700
+                    ">
+                        Connect with us
+                    </p>
+
                     <div className="flex space-x-4">
                         {/* Social Media Icons */}
                         <a href="#" className="text-gray-400 hover:text-white transition" aria-label="Facebook">
@@ -107,8 +110,8 @@ export default function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="border-t border-gray-800 mt-8 pt-8 text-center md:text-center">
-                    <p className="text-gray-400 text-sm">
+                <div className="border-t border-gray-200 mt-8 pt-8 text-center">
+                    <p className="text-gray-500 text-sm">
                         © {new Date().getFullYear()} EduConnect. All rights reserved.
                     </p>
                 </div>
