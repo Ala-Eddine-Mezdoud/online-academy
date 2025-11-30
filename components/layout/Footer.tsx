@@ -8,12 +8,11 @@ export default function Footer() {
                     
                     {/* Company Info */}
                     <div className="col-span-1 md:col-span-2">
-                        <h3 className="text-2xl font-bold mb-4 text-[#00A5B5]">EduConnect</h3>
+                        <h3 className="text-2xl font-bold mb-4 text-[#0C86D8]">EduConnect</h3>
                         <p className="text-gray-600 mb-4">
                             Empowering learners worldwide with quality education and innovative courses.
                         </p>
                     </div>
-
                     {/* Company */}
                     <div>
                         <h4 className="text-lg font-semibold mb-4 text-gray-900">Company</h4>
