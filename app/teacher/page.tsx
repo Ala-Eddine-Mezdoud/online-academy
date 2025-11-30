@@ -46,7 +46,7 @@ const instructors = [
 export default function Teacher() {
   return (
     <div>
-      <section className="space-y-10 bg-white pt-18 pb-32 px-10 md:px-20">
+      <section className="space-y-10 bg-white pt-20 pb-32 px-10 md:px-20">
         <header className="space-y-4 text-center">
           <h1 className="text-5xl font-bold text-slate-900">
             Meet Our Expert Instructors
@@ -62,7 +62,8 @@ export default function Teacher() {
             <TeacherCard key={teacher.id} {...teacher} />
           ))}
         </div>
-      </section>{" "}
+      </section>
+      {"  "}
       <div className="bg-neutral-100 flex flex-col justify-center items-center pt-28 pb-28 gap-5 pr-10 pl-10">
         <h1 className="text-4xl font-bold text-slate-900 max-w-96 text-center">
           Ready to Learn from the Best?

@@ -17,6 +17,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <>
       {!isAuthPage && <Navbar />}
       <main className="min-h-screen">{children}</main>
+
       {!isAuthPage && <Footer />}
     </>
   );
