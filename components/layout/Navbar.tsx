@@ -19,7 +19,7 @@ export default function Navbar() {
                 <div className="flex justify-between h-18">
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center">
-                        <a href="/" className="text-2xl font-bold text-blue-600">
+                        <a href="/" className="text-2xl font-bold text-[#0C86D8]">
                             EduConnect
                         </a>
                     </div>
@@ -98,12 +98,12 @@ export default function Navbar() {
                             className="w-[83px] h-[40px] px-3 flex items-center justify-center
                                         font-['Open Sans'] text-[14px] leading-[22px] font-medium
                                         text-white
-                                        bg-gradient-to-r from-blue-500 to-purple-500
+                                        bg-gradient-to-r from-blue-600 to-[#0C86D8]
                                         rounded-[6px]
                                         border-none
                                         transition-all duration-200
                                         hover:-translate-y-1
-                                        hover:from-blue-600 hover:to-purple-600"
+                                        hover:from-blue-700 hover:to-[#0C86D8]"
                         >
                             Sign Up
                         </a>

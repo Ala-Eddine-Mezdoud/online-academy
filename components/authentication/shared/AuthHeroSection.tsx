@@ -50,3 +50,8 @@ export default function AuthHeroSection({
     </motion.div>
   );
 }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 7f7dc1b5d955eaf6b66404801576717735b24dd2
