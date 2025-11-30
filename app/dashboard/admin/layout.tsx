@@ -10,10 +10,14 @@ export const metadata = {
   title: "Admin Dashboard",
   description: "Admin area for managing teachers, students and courses",
 };
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   async function handleNavigate(page: PageType) {
     "use server";
-    console.log('Server action handleNavigate called for page:', page);
+    console.log("Server action handleNavigate called for page:", page);
   }
 
   return (
@@ -21,10 +25,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex">
         <Sidebar onNavigate={handleNavigate} />
 
-          <main className="flex-1 overflow-auto pt-10">
-            <TopBar />
-            {children}
-          </main>
+        <main className="flex-1 overflow-auto pt-10">
+          <TopBar />
+          {children}
+        </main>
       </div>
 
       {/* Optional modal root if you prefer to portal into a specific node */}
