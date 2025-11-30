@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
@@ -10,15 +10,20 @@ import { Label } from '@/components/admin/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
 import { Badge } from '@/components/admin/ui/badge';
-import { courses as initialCourses, teachers, categories, Course } from '@/lib/mockData';
+import { getAllCourses, createCourse, updateCourse, deleteCourse } from '@/app/lib/courses.client';
+import { getAllProfiles } from '@/app/lib/profiles.client';
+import { getAllCategories } from '@/app/lib/categories.client';
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     teacher_id: '',
@@ -29,84 +34,104 @@ export default function CoursesPage() {
     price: '',
   });
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [coursesData, teachersData, categoriesData] = await Promise.all([
+        getAllCourses(),
+        getAllProfiles('teacher'),
+        getAllCategories()
+      ]);
+      setCourses(coursesData || []);
+      setTeachers(teachersData || []);
+      setCategories(categoriesData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.teacher_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.category_name.toLowerCase().includes(searchQuery.toLowerCase())
+    // Note: We might need to join teacher/category names if they are not in the course object
+    // Assuming course object has teacher_id and category_id, we might need to lookup names
+    // For now, let's just filter by title
+    teachers.find(t => t.id === course.teacher_id)?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    categories.find(c => c.id === course.category_id)?.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleCreate = () => {
-    const teacher = teachers.find(t => t.id === formData.teacher_id);
-    const category = categories.find(c => c.id === Number(formData.category_id));
-    
-    const newCourse: Course = {
-      id: Date.now(),
-      title: formData.title,
-      teacher_id: formData.teacher_id,
-      teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : '',
-      category_id: Number(formData.category_id),
-      category_name: category?.name || '',
-      overview: formData.overview,
-      description: formData.description,
-      num_weeks: Number(formData.num_weeks),
-      price: Number(formData.price),
-      created_at: new Date().toISOString(),
-      enrollments_count: 0
-    };
-    setCourses([...courses, newCourse]);
-    setIsCreateOpen(false);
-    resetForm();
+  const handleCreate = async () => {
+    try {
+      await createCourse({
+        title: formData.title,
+        teacher_id: formData.teacher_id,
+        category_id: Number(formData.category_id),
+        overview: formData.overview,
+        description: formData.description,
+        num_weeks: Number(formData.num_weeks),
+        price: Number(formData.price),
+      });
+      await fetchData();
+      setIsCreateOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating course:', error);
+    }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!selectedCourse) return;
-    
-    const teacher = teachers.find(t => t.id === formData.teacher_id);
-    const category = categories.find(c => c.id === Number(formData.category_id));
-    
-    setCourses(courses.map(c => 
-      c.id === selectedCourse.id 
-        ? { 
-            ...c,
-            title: formData.title,
-            teacher_id: formData.teacher_id,
-            teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : c.teacher_name,
-            category_id: Number(formData.category_id),
-            category_name: category?.name || c.category_name,
-            overview: formData.overview,
-            description: formData.description,
-            num_weeks: Number(formData.num_weeks),
-            price: Number(formData.price),
-          }
-        : c
-    ));
-    setIsEditOpen(false);
-    setSelectedCourse(null);
-    resetForm();
+    try {
+      await updateCourse(selectedCourse.id, {
+        title: formData.title,
+        teacher_id: formData.teacher_id,
+        category_id: Number(formData.category_id),
+        overview: formData.overview,
+        description: formData.description,
+        num_weeks: Number(formData.num_weeks),
+        price: Number(formData.price),
+      });
+      await fetchData();
+      setIsEditOpen(false);
+      setSelectedCourse(null);
+      resetForm();
+    } catch (error) {
+      console.error('Error updating course:', error);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedCourse) return;
-    setCourses(courses.filter(c => c.id !== selectedCourse.id));
-    setIsDeleteOpen(false);
-    setSelectedCourse(null);
+    try {
+      await deleteCourse(selectedCourse.id);
+      await fetchData();
+      setIsDeleteOpen(false);
+      setSelectedCourse(null);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
   };
 
-  const openEdit = (course: Course) => {
+  const openEdit = (course: any) => {
     setSelectedCourse(course);
     setFormData({
       title: course.title,
-      teacher_id: course.teacher_id,
-      category_id: String(course.category_id),
+      teacher_id: course.teacher_id || '',
+      category_id: String(course.category_id || ''),
       overview: course.overview || '',
       description: course.description || '',
-      num_weeks: String(course.num_weeks),
-      price: String(course.price),
+      num_weeks: String(course.num_weeks || ''),
+      price: String(course.price || ''),
     });
     setIsEditOpen(true);
   };
 
-  const openDelete = (course: Course) => {
+  const openDelete = (course: any) => {
     setSelectedCourse(course);
     setIsDeleteOpen(true);
   };
@@ -122,6 +147,18 @@ export default function CoursesPage() {
       price: '',
     });
   };
+
+  const getTeacherName = (id: string) => {
+    const teacher = teachers.find(t => t.id === id);
+    return teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Unknown';
+  };
+
+  const getCategoryName = (id: number) => {
+    const category = categories.find(c => c.id === id);
+    return category ? category.name : 'Unknown';
+  };
+
+  if (loading) return <div className="p-8">Loading courses...</div>;
 
   return (
     <div className="p-8">
@@ -158,7 +195,7 @@ export default function CoursesPage() {
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Duration</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Enrollments</th>
+                {/* <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Enrollments</th> */}
                 
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -169,15 +206,15 @@ export default function CoursesPage() {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-xs">
                     <div className="truncate">{course.title}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{course.teacher_name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{getTeacherName(course.teacher_id)}</td>
                   <td className="px-6 py-4 text-sm">
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      {course.category_name}
+                      {getCategoryName(course.category_id)}
                     </Badge>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{course.num_weeks} weeks</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{course.price.toLocaleString()} DZD</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{course.enrollments_count}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{course.price?.toLocaleString()} DZD</td>
+                  {/* <td className="px-6 py-4 text-sm text-gray-500">{course.enrollments_count}</td> */}
                   
                   <td className="px-6 py-4 text-sm">
                     <div className="flex gap-2">

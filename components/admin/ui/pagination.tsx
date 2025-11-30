@@ -2,7 +2,7 @@ import * as React from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  DotsHorizontalIcon,
+  MoreHorizontalIcon,
 } from "lucide-react";
 
 import { cn } from "./utils";

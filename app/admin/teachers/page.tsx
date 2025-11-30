@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search, Link as LinkIcon, X } from 'lucide-react';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
@@ -9,21 +9,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/admin/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
-import { teachers as initialTeachers, wilayas, Teacher } from '@/lib/mockData';
-
-interface TeacherLink {
-  id: number;
-  platform: string;
-  url: string;
-}
+import { getAllProfiles, createProfile, updateProfile, deleteProfile } from '@/app/lib/profiles.client';
+import { createUser } from '@/app/lib/actions';
+import { wilayas } from '@/lib/mockData';
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -33,92 +30,112 @@ export default function TeachersPage() {
     role_title: '',
     description: '',
   });
-  const [links, setLinks] = useState<TeacherLink[]>([]);
-  const [newLink, setNewLink] = useState({ platform: '', url: '' });
+
+  const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllProfiles('teacher');
+      setTeachers(data || []);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
 
   const filteredTeachers = teachers.filter(teacher =>
-    teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teacher.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teacher.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    teacher.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.role_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.wilaya?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleCreate = () => {
-    const newTeacher: Teacher = {
-      id: String(Date.now()),
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      role: 'teacher',
-      phone_number: formData.phone_number,
-      wilaya: formData.wilaya,
-      role_title: formData.role_title,
-      description: formData.description,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      links: links.length > 0 ? links : undefined,
-    };
-    setTeachers([...teachers, newTeacher]);
-    setIsCreateOpen(false);
-    resetForm();
+  const handleCreate = async () => {
+    try {
+      const result = await createUser(formData.email, 'teacher', {
+        role_title: `${formData.first_name} ${formData.last_name}`,
+        description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
+        phone_number: formData.phone_number,
+        wilaya: formData.wilaya,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      await fetchTeachers();
+      setIsCreateOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating teacher:', error);
+    }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!selectedTeacher) return;
-    setTeachers(teachers.map(t => 
-      t.id === selectedTeacher.id 
-        ? { ...t, ...formData, links: links.length > 0 ? links : undefined, updated_at: new Date().toISOString() }
-        : t
-    ));
-    setIsEditOpen(false);
-    setSelectedTeacher(null);
-    resetForm();
+    try {
+      await updateProfile(selectedTeacher.id, {
+        role_title: `${formData.first_name} ${formData.last_name}`,
+        description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
+        phone_number: formData.phone_number,
+        wilaya: formData.wilaya,
+      });
+      await fetchTeachers();
+      setIsEditOpen(false);
+      setSelectedTeacher(null);
+      resetForm();
+    } catch (error) {
+      console.error('Error updating teacher:', error);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedTeacher) return;
-    setTeachers(teachers.filter(t => t.id !== selectedTeacher.id));
-    setIsDeleteOpen(false);
-    setSelectedTeacher(null);
+    try {
+      await deleteProfile(selectedTeacher.id);
+      await fetchTeachers();
+      setIsDeleteOpen(false);
+      setSelectedTeacher(null);
+    } catch (error) {
+      console.error('Error deleting teacher:', error);
+    }
   };
 
-  const openEdit = (teacher: Teacher) => {
+  const openEdit = (teacher: any) => {
     setSelectedTeacher(teacher);
+    const [first, ...last] = (teacher.role_title || '').split(' ');
+    
+    // Parse description
+    const descLines = (teacher.description || '').split('\n');
+    const emailLine = descLines.find((l: string) => l.startsWith('Email: '));
+    const titleLine = descLines.find((l: string) => l.startsWith('Title: '));
+    const bioLine = descLines.find((l: string) => l.startsWith('Bio: '));
+    
     setFormData({
-      first_name: teacher.first_name || '',
-      last_name: teacher.last_name || '',
-      email: teacher.email,
+      first_name: first || '',
+      last_name: last.join(' ') || '',
+      email: emailLine?.replace('Email: ', '') || '',
+      role_title: titleLine?.replace('Title: ', '') || '',
+      description: bioLine?.replace('Bio: ', '') || teacher.description || '',
       phone_number: teacher.phone_number || '',
       wilaya: teacher.wilaya || '',
-      role_title: teacher.role_title || '',
-      description: teacher.description || '',
     });
-    setLinks(teacher.links || []);
     setIsEditOpen(true);
   };
 
-  const openDelete = (teacher: Teacher) => {
+  const openDelete = (teacher: any) => {
     setSelectedTeacher(teacher);
     setIsDeleteOpen(true);
   };
 
-  const addLink = () => {
-    if (newLink.platform && newLink.url) {
-      setLinks([...links, { id: Date.now(), ...newLink }]);
-      setNewLink({ platform: '', url: '' });
-    }
-  };
-
-  const removeLink = (id: number) => {
-    setLinks(links.filter(link => link.id !== id));
-  };
-
   const resetForm = () => {
     setFormData({ first_name: '', last_name: '', email: '', phone_number: '', wilaya: '', role_title: '', description: '' });
-    setLinks([]);
-    setNewLink({ platform: '', url: '' });
   };
+
+  if (loading) return <div className="p-8">Loading teachers...</div>;
 
   return (
     <div className="p-8">
@@ -138,7 +155,7 @@ export default function TeachersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search teachers by name, email, title, or wilaya..."
+              placeholder="Search teachers by name, email, or wilaya..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -151,64 +168,51 @@ export default function TeachersPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email (Desc)</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title (Desc)</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Phone</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Wilaya</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Links</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredTeachers.map((teacher) => (
-                <tr key={teacher.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {teacher.first_name && teacher.last_name ? `${teacher.first_name} ${teacher.last_name}` : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{teacher.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{teacher.role_title || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{teacher.phone_number || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{teacher.wilaya || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {teacher.links && teacher.links.length > 0 ? (
-                      <div className="flex gap-1">
-                        {teacher.links.map((link) => (
-                          <a
-                            key={link.id}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                            title={link.platform}
-                          >
-                            <LinkIcon className="w-4 h-4" />
-                          </a>
-                        ))}
+              {filteredTeachers.map((teacher) => {
+                const descLines = (teacher.description || '').split('\n');
+                const email = descLines.find((l: string) => l.startsWith('Email: '))?.replace('Email: ', '') || '-';
+                const title = descLines.find((l: string) => l.startsWith('Title: '))?.replace('Title: ', '') || '-';
+                
+                return (
+                  <tr key={teacher.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {teacher.role_title || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{title}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.phone_number || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.wilaya || '-'}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(teacher)}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDelete(teacher)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
-                    ) : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEdit(teacher)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openDelete(teacher)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -220,7 +224,7 @@ export default function TeachersPage() {
           <DialogHeader>
             <DialogTitle>Add New Teacher</DialogTitle>
             <DialogDescription>
-              Add a new teacher to the platform. Fill in the details and social links below.
+              Add a new teacher to the platform. Note: This does not create a login account.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -288,7 +292,7 @@ export default function TeachersPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description (Bio)</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -296,41 +300,6 @@ export default function TeachersPage() {
                 placeholder="Brief bio about the teacher"
                 rows={3}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Social Links</Label>
-              <div className="space-y-2">
-                {links.map((link) => (
-                  <div key={link.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <span className="text-sm">{link.platform}:</span>
-                    <span className="text-sm text-gray-600 flex-1 truncate">{link.url}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeLink(link.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Platform (e.g., LinkedIn)"
-                  value={newLink.platform}
-                  onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
-                />
-                <Input
-                  placeholder="URL"
-                  value={newLink.url}
-                  onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                />
-                <Button onClick={addLink} variant="outline" size="sm">
-                  Add
-                </Button>
-              </div>
             </div>
           </div>
           <DialogFooter>
@@ -350,7 +319,7 @@ export default function TeachersPage() {
           <DialogHeader>
             <DialogTitle>Edit Teacher</DialogTitle>
             <DialogDescription>
-              Update the teacher information and social links below.
+              Update the teacher information.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -413,48 +382,13 @@ export default function TeachersPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">Description (Bio)</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Social Links</Label>
-              <div className="space-y-2">
-                {links.map((link) => (
-                  <div key={link.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <span className="text-sm">{link.platform}:</span>
-                    <span className="text-sm text-gray-600 flex-1 truncate">{link.url}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeLink(link.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Platform (e.g., LinkedIn)"
-                  value={newLink.platform}
-                  onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
-                />
-                <Input
-                  placeholder="URL"
-                  value={newLink.url}
-                  onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                />
-                <Button onClick={addLink} variant="outline" size="sm">
-                  Add
-                </Button>
-              </div>
             </div>
           </div>
           <DialogFooter>
@@ -474,7 +408,7 @@ export default function TeachersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the teacher &quot;{selectedTeacher?.first_name} {selectedTeacher?.last_name}&quot;. This action cannot be undone.
+              This will permanently delete the teacher &quot;{selectedTeacher?.role_title}&quot;. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

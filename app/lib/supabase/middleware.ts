@@ -39,16 +39,16 @@ export default async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
   const PROTECTED_ROUTES = ["/dashboard"];
-  const ADMIN_ROUTES = ["/dashboard/admin"];
-  const AUTH_ROUTES = ["/login", "/signup"];
+  const ADMIN_ROUTES = ["/dashboard/admin", "/admin"];
+  const AUTH_ROUTES = ["/login"];
   
   // login the user to check for errors in JWT validation
   // as of now everything is working fine
-  // console.log(user);
+  console.log(user);
 
   const isProtected = PROTECTED_ROUTES.some((path) => pathname.startsWith(path));
   const isAuth = AUTH_ROUTES.some((path) => pathname.startsWith(path));
-  const isAdmin = false //ADMIN_ROUTES.some((path) => pathname.startsWith(path));
+  const isAdmin = ADMIN_ROUTES.some((path) => pathname.startsWith(path));
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
@@ -56,13 +56,14 @@ export default async function updateSession(request: NextRequest) {
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
-  if (isAuth && user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+  // if (isAuth && user) {
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = "/";
+  //   return NextResponse.redirect(url);
+  // }
 
   if( isAdmin && user?.user_metadata.role != 'admin'){
+    console.log("admin");
     return NextResponse.rewrite(new URL('/404', request.url));
   }
 
