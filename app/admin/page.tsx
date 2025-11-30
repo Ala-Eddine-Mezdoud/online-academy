@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [popularCourses, setPopularCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +69,8 @@ export default function DashboardPage() {
 
     fetchData();
   }, []);
+
+
 
   if (loading) {
     return <div className="p-8">Loading dashboard...</div>;
