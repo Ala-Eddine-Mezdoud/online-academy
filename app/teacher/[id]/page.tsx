@@ -42,7 +42,7 @@ const teacherCourses = [
 export default function TeacherDetails() {
   return (
     <div>
-      <div className="px-6 py-12 md:px-24">
+      <div className="px-6 py-12 md:px-24 bg-white">
         <TeacherHighlight {...teacher} />
       </div>
       <section className="px-6 md:px-24 mt-16 py-6 bg-neutral-100 w-full">
