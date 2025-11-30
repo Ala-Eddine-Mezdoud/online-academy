@@ -120,7 +120,7 @@ const faqs = [
 
 export default function CourseDetailPage() {
   return (
-    <div className="flex flex-col px-8 gap-14 md:px-24">
+    <div className="flex flex-col pt-12 bg-white pd-8 px-8 gap-14 md:px-24">
       <CourseHero
         title="Mastering React: From Beginner to Advanced Developer"
         description="Dive deep into the world of React, build complex applications, and master best practices. Learn hooks, context API, routing, and state management like a pro."
