@@ -22,3 +22,4 @@ export default function AuthFormFooter({ prompt, linkText, linkHref }: AuthFormF
   );
 }
 
+
