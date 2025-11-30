@@ -22,7 +22,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
       <div className="flex">
           <SidebarTeacher onNavigate={handleNavigate} />
 
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto pt-10">
             <TopBar />
             {children}
           </main>
