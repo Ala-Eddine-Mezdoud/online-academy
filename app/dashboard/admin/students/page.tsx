@@ -93,7 +93,7 @@ export default function StudentsPage() {
 
       <div className="p-8">
       {/* Stats */}
-<div className="grid grid-cols-3 gap-4 mb-8">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
   <StatCard
               title="Total Students"
               value={students.length.toString()}
@@ -118,7 +118,7 @@ export default function StudentsPage() {
 
 
         {/* Students Table + Actions (left table, right aside) */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
             <div className="bg-white rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -200,14 +200,14 @@ export default function StudentsPage() {
             </div>
           </div>
 
-          <aside className="w-80">
+          <aside className="w-full lg:w-80">
             <EnrollStudent courses={courses} students={students} onEnroll={handleEnrollStudent} />
           </aside>
         </div>
       </div>
       {/* Enrollments Table (aligned width with Students table) */}
       <div className="p-8">
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -266,7 +266,7 @@ export default function StudentsPage() {
               </div>
             </div>
           </div>
-          <aside className="w-80" />
+          <aside className="w-full lg:w-80" />
         </div>
       </div>
 

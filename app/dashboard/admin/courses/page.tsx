@@ -90,7 +90,7 @@ export default function CoursesPage() {
 
          
         {/* Courses Table + Actions (left table, right aside) */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
             <div className="bg-white rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -189,7 +189,7 @@ export default function CoursesPage() {
             </div>
           </div>
 
-          <aside className="w-80">
+          <aside className="w-full lg:w-80">
             <AssignCourseToTeacher courses={courses} teachers={teachers} onAssign={handleAssignCourse} />
           </aside>
         </div>

@@ -17,14 +17,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="flex">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden">
+      <div className="flex flex-col md:flex-row">
         <Sidebar onNavigate={handleNavigate} />
 
-          <main className="flex-1 overflow-auto pt-10">
-            <TopBar />
-            {children}
-          </main>
+        <main className="flex-1 overflow-auto pt-10">
+          <TopBar />
+          {children}
+        </main>
       </div>
 
       {/* Optional modal root if you prefer to portal into a specific node */}
