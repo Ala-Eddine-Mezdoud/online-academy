@@ -10,10 +10,14 @@ export const metadata = {
   title: "Admin Dashboard",
   description: "Admin area for managing teachers, students and courses",
 };
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   async function handleNavigate(page: PageType) {
     "use server";
-    console.log('Server action handleNavigate called for page:', page);
+    console.log("Server action handleNavigate called for page:", page);
   }
 
   return (

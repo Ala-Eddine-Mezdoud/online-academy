@@ -26,6 +26,7 @@ export default function AdminProfilePage() {
     gender: "Female",
   });
 
+
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -78,6 +79,8 @@ export default function AdminProfilePage() {
     }
     router.push('/');
   };
+
+
 
   return (
     <div className="flex-1 bg-gray-50 overflow-auto">
@@ -135,6 +138,7 @@ export default function AdminProfilePage() {
                 <span>{profile.location}</span>
               </div>
             </div>
+            
           </div>
         </div>
 
@@ -295,6 +299,7 @@ export default function AdminProfilePage() {
             </button>
           </div>
         </form>
+
         {/* Logout button */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-2xl font-bold text-slate-900 mb-2">Session</h3>
@@ -305,6 +310,8 @@ export default function AdminProfilePage() {
             </button>
           </div>
         </div>
+
+
       </div>
     </div>
   );

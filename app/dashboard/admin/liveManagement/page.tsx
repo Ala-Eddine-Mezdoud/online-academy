@@ -27,6 +27,7 @@ type LiveSession = {
 
 
 export default function LiveManagementPage() {
+
   const [sessions, setSessions] = useState<LiveSession[]>(initialSessions);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -38,16 +39,19 @@ export default function LiveManagementPage() {
   const [createDate, setCreateDate] = useState<string>("");
   const [createTime, setCreateTime] = useState<string>("");
 
+
   useEffect(() => {
     const course = mockCourses.find((c) => c.id === selectedCourseId);
     const teacher = mockTeachers.find((t) => t.id === course?.teacher_id);
     setCreateTeacherName(teacher?.name ?? "Unassigned");
   }, [selectedCourseId]);
 
+
   const totalSessions = sessions.length;
   const upcomingCount = sessions.filter((s) => s.status === "Upcoming").length;
   const liveCount = sessions.filter((s) => s.status === "Live").length;
   const canceledCount = sessions.filter((s) => s.status === "Canceled").length;
+
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -62,6 +66,8 @@ export default function LiveManagementPage() {
     });
   }, [sessions, searchQuery, statusFilter]);
 
+
+  
   const openEdit = (session: LiveSession) => {
     setEditingSession(session);
     setIsEditOpen(true);

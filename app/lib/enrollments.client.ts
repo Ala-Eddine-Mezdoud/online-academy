@@ -39,6 +39,21 @@ export const unenroll = async (courseId: number) => {
   return data;
 };
 
+export const getAllEnrollments = async () => {
+  const { data: enrollments, error: err } = await supabase.from('enrollments').select(`
+    *,
+    courses (
+      title,
+      teacher_id
+    ),
+    profiles (
+      role
+    )
+  `);
+  if (err) throw err;
+  return enrollments;
+};
+
 export const updateEnrollmentProgress = async (id: number, progress: number) => {
   const { data, error } = await supabase.from('enrollments').update({ progress }).eq('id', id).select().single();
   if (error) throw error;

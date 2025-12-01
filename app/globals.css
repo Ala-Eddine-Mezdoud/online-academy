@@ -2,20 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  
+
   /* EduConnect Color Tokens */
-  --primary: #19B7FF;
-  --primary-600: #0C86D8;
-  --neutral-100: #F7F9FB;
-  --neutral-200: #F2F3F5;
-  --neutral-500: #9AA2AA;
-  --neutral-700: #30363A;
-  --success: #10B981;
-  --error: #EF4444;
+  --primary: #19b7ff;
+  --primary-600: #0c86d8;
+  --neutral-100: #f7f9fb;
+  --neutral-200: #f2f3f5;
+  --neutral-500: #9aa2aa;
+  --neutral-700: #30363a;
+  --success: #10b981;
+  --error: #ef4444;
   --border: rgba(16, 24, 40, 0.06);
 }
 
@@ -24,7 +23,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
   --font-body: var(--font-inter);
-  
+
   /* Custom color tokens */
   --color-primary: var(--primary);
   --color-primary-600: var(--primary-600);
@@ -44,7 +43,7 @@
 }
 
 body {
-  background: var(--background);
+  background: #ffffff;
   color: var(--foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }

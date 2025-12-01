@@ -8,7 +8,10 @@ import Link from 'next/link';
 import { Users, IdCard, Grid3x3 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 
+
+
 export default function StudentsPage() {
+
   const [students, setStudents] = useState<Student[]>(initialStudents ?? []);
   const [courses, setCourses] = useState<Course[]>(initialCourses ?? []);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>(initialEnrollments ?? []);
@@ -85,6 +88,8 @@ export default function StudentsPage() {
   
 
   const uniqueMajorsCount = new Set(students.map((s) => s.major ?? '').filter(Boolean)).size;
+
+
 
   return (
     <div className="flex-1 bg-gray-50 overflow-auto">

@@ -20,6 +20,7 @@ const enrolledCourses = [
   },
 ];
 
+
 const notifications = [
   {
     id: 1,
@@ -90,9 +91,12 @@ const quickActions = [
   },
 ];
 
+
+
 export default function StudentDashboard() {
   return (
     <div className="bg-slate-50 min-h-screen pt-20">
+      
       {/* Welcome Section */}
       <section className="py-12 px-10 md:px-20">
         <div className="max-w-5xl mx-auto bg-gradient-to-b from-blue-50 to-white rounded-3xl shadow-lg p-10">
@@ -121,6 +125,7 @@ export default function StudentDashboard() {
       {/* Main Content */}
       <section className="py-12 px-10 md:px-20">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
+
           {/* Left Column - Recent Courses */}
           <div className="md:col-span-2">
             <div>
@@ -223,8 +228,11 @@ export default function StudentDashboard() {
               </div>
             </div>
           </div>
+
         </div>
       </section>
+
+
     </div>
   );
 }
