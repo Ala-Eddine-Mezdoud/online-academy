@@ -18,15 +18,15 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="flex">
-          <SidebarTeacher onNavigate={handleNavigate} />
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden">
+      <div className="flex flex-col md:flex-row">
+        <SidebarTeacher onNavigate={handleNavigate} />
 
-          <main className="flex-1 overflow-auto pt-10">
-            <TopBar />
-            {children}
-          </main>
-        </div>
+        <main className="flex-1 overflow-auto pt-10">
+          <TopBar />
+          {children}
+        </main>
+      </div>
 
       <div id="modal-root" />
     </div>

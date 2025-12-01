@@ -46,7 +46,8 @@ export default function SidebarTeacher({ currentPage, onNavigate }: SidebarProps
   }
 
   return (
-    <div className="w-64 bg-white h-screen border-r border-gray-200 flex flex-col pt-10" >
+    <>
+      <div className="hidden md:flex w-64 bg-white md:h-screen border-r border-gray-200 flex-col pt-10">
       <div className="p-7 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center">
@@ -96,6 +97,9 @@ export default function SidebarTeacher({ currentPage, onNavigate }: SidebarProps
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Mobile navigation is provided via TopBar slide-over drawer; nothing to render here */}
+    </>
   );
 }
