@@ -14,8 +14,8 @@ export default function Navbar() {
     const isContactPage = pathname === '/contact';
 
     return (
-        <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
-            <div className="max-w-7xl mx-auto container">
+        <nav className="bg-white container mx-auto shadow-sm fixed top-0 left-0 right-0 z-50">
+            <div className="">
                 <div className="flex justify-between h-18">
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center">
