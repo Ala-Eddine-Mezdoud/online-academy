@@ -72,6 +72,7 @@ const faqs = [
 ];
 
 export default function Home() {
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (id: number) => {
@@ -79,10 +80,10 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-white py-10 container mx-auto">
       {/* Hero Section */}
-      <section className="bg-white py-16 px-10 md:px-20">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+      <section className=" py-16">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
               Your Journey to Knowledge Starts Here
@@ -115,8 +116,8 @@ export default function Home() {
       </section>
 
       {/* Mission Section */}
-      <section className="bg-slate-50 py-16 px-10 md:px-20">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-slate-50 py-16">
+        <div className="">
           <div className="flex items-start gap-6 max-w-3xl">
             <div className="shrink-0">
               <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
@@ -136,8 +137,8 @@ export default function Home() {
       </section>
 
       {/* Impact Stats Section */}
-      <section className="bg-white py-16 px-10 md:px-20">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-white py-16 ">
+        <div className="">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-12">
             Our Impact
           </h2>
@@ -158,8 +159,8 @@ export default function Home() {
       </section>
 
       {/* Popular Courses Section */}
-      <section className="bg-slate-50 py-16 px-10 md:px-20">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-slate-50 py-16 ">
+        <div className="">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-12">
             Popular Courses
           </h2>
@@ -191,8 +192,8 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-16 px-10 md:px-20">
-        <div className="max-w-4xl mx-auto">
+      <section className="bg-white py-16">
+        <div className="">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-12">
             Frequently Asked Questions
           </h2>
@@ -207,10 +208,10 @@ export default function Home() {
                   className="w-full p-5 flex items-center justify-between hover:bg-slate-50 transition"
                 >
                   <p className="text-sm font-medium text-slate-900 text-left">{faq.question}</p>
-                  <svg 
-                    className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${openFaq === faq.id ? 'rotate-90' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${openFaq === faq.id ? 'rotate-90' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

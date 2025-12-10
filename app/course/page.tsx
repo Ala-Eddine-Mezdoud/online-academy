@@ -100,7 +100,8 @@ const instructors = [
 
 export default function Course() {
   return (
-    <section className="space-y-10 bg-white py-8 px-8 md:px-24">
+
+    <section className="py-32 space-y-16 container mx-auto ">
       <header className="space-y-4">
         <h1 className="text-5xl font-bold text-slate-900">
           Explore Our Courses
@@ -120,25 +121,7 @@ export default function Course() {
           <CourseCard key={course.id} {...course} />
         ))}
       </div>
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
-            Instructors
-          </p>
-          <h2 className="text-3xl font-bold text-slate-900">
-            Meet Your Teachers
-          </h2>
-          <p className="max-w-3xl text-base text-slate-600">
-            Learn from industry practitioners who guide you with real-world
-            scenarios, career advice, and personalized feedback.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {instructors.map((teacher) => (
-            <TeacherCard key={teacher.id} {...teacher} />
-          ))}
-        </div>
-      </div>
+
     </section>
   );
 }
