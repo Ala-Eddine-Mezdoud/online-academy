@@ -43,6 +43,7 @@ const instructors = [
   },
 ];
 
+
 export default function Teacher() {
   return (
     <div>
