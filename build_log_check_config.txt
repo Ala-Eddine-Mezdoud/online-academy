@@ -1,0 +1,71 @@
+
+> online-academy@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Ôû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env
+
+ ÔÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ Ô£ô Compiled successfully in 7.9s
+   Running TypeScript ...
+   Collecting page data using 11 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (0/29) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (7/29) 
+   Generating static pages using 11 workers (14/29) 
+   Generating static pages using 11 workers (21/29) 
+ Ô£ô Generating static pages using 11 workers (29/29) in 1342.7ms
+   Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ Ôùï /about
+Ôö£ Ôùï /admin
+Ôö£ Ôùï /admin/courses
+Ôö£ Ôùï /admin/enrollments
+Ôö£ Ôùï /admin/students
+Ôö£ Ôùï /admin/teachers
+Ôö£ Ôùï /contact
+Ôö£ Ôùï /course
+Ôö£ ãÆ /course/[id]
+Ôö£ Ôùï /dashboard
+Ôö£ Ôùï /dashboard/admin
+Ôö£ Ôùï /dashboard/admin/courses
+Ôö£ Ôùï /dashboard/admin/liveManagement
+Ôö£ Ôùï /dashboard/admin/notifications
+Ôö£ Ôùï /dashboard/admin/profile
+Ôö£ Ôùï /dashboard/admin/students
+Ôö£ Ôùï /dashboard/admin/teachers
+Ôö£ Ôùï /dashboard/notifications
+Ôö£ Ôùï /dashboard/teacher
+Ôö£ Ôùï /dashboard/teacher/courses
+Ôö£ Ôùï /dashboard/teacher/notifications
+Ôö£ Ôùï /dashboard/teacher/profile
+Ôö£ Ôùï /forgot-password
+Ôö£ Ôùï /login
+Ôö£ Ôùï /signup
+Ôö£ Ôùï /teacher
+Ôöö ãÆ /teacher/[id]
+
+
+ãÆ Proxy (Middleware)
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+
