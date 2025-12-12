@@ -140,7 +140,7 @@ export default function LoginPage() {
           <AuthHeroSection
             title="Welcome back to EduConnect"
             description="Log in to stay on track."
-            illustrationSrc="/login-sketch.png"
+            illustrationSrc="/login-sketch1.png"
             illustrationAlt="Students learning illustration"
             order="right"
           />
