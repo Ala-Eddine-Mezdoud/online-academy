@@ -34,21 +34,7 @@ export default function ForgotPasswordPage() {
     setServerError(null);
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/forgot-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     email: data.email,
-      //   }),
-      // });
-      
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   throw new Error(error.message || 'Failed to send reset email');
-      // }
 
-      // Show success message
       setIsSuccess(true);
     } catch (error) {
       setServerError(error instanceof Error ? error.message : 'An error occurred. Please try again.');
@@ -62,7 +48,7 @@ export default function ForgotPasswordPage() {
       formOrder="right"
       mobileTitle={
         <MobileTitleAndSketch 
-          sketchImage="/login-sketch.png"
+          sketchImage="/login-sketch1.png"
           sketchAlt="Login illustration"
         />
       }
@@ -70,7 +56,7 @@ export default function ForgotPasswordPage() {
       <AuthHeroSection
         title="Reset Your Password"
         description="Enter your email address and we'll send you a link to reset your password."
-        illustrationSrc="/login-sketch.png"
+        illustrationSrc="/login-sketch1.png"
         illustrationAlt="Password reset illustration"
         order="left"
       />

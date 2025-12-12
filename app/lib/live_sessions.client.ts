@@ -3,8 +3,14 @@ import type { Database } from './supabase/database.types';
 
 const supabase = createBrowserSupabase();
 
+export const getAllSessions = async () => {
+  const { data, error } = await supabase.from('live_sessions').select('*').is('deleted_at', null).order('start_time', { ascending: true });
+  if (error) throw error;
+  return data;
+};
+
 export const getSessionsByCourse = async (courseId: number) => {
-  const { data, error } = await supabase.from('live_sessions').select('*').eq('course_id', courseId).order('start_time', { ascending: true });
+  const { data, error } = await supabase.from('live_sessions').select('*').eq('course_id', courseId).is('deleted_at', null).order('start_time', { ascending: true });
   if (error) throw error;
   return data;
 };

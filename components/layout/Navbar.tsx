@@ -16,7 +16,7 @@ export default function Navbar() {
     return (
         <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-18">
+                <div className="flex justify-between h-16">
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center">
                         <a href="/" className="text-2xl font-bold text-[#0C86D8]">
@@ -30,8 +30,8 @@ export default function Navbar() {
                             <a
                                 href="/"
                                 className={isHomePage 
-                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
-                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
+                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-900 h-full"
+                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-700 h-full"
                                 }
                             >
                                 Home
@@ -39,8 +39,8 @@ export default function Navbar() {
                             <a
                                 href="/course"
                                 className={isCoursePage 
-                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
-                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
+                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-900 h-full"
+                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-700 h-full"
                                 }
                             >
                                 Courses
@@ -48,8 +48,8 @@ export default function Navbar() {
                             <a
                                 href="/teacher"
                                 className={isTeacherPage 
-                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
-                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
+                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-900 h-full"
+                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-700 h-full"
                                 }
                             >
                                 Teachers
@@ -57,8 +57,8 @@ export default function Navbar() {
                             <a
                                 href="/about"
                                 className={isAboutPage 
-                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
-                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
+                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-900 h-full"
+                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-700 h-full"
                                 }
                             >
                                 About Us
@@ -66,8 +66,8 @@ export default function Navbar() {
                             <a
                                 href="/contact"
                                 className={isContactPage 
-                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
-                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
+                                    ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-900 h-full"
+                                    : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 border-b-2 text-sm font-medium text-gray-700 h-full"
                                 }
                             >
                                 Contact Us
@@ -191,10 +191,10 @@ export default function Navbar() {
                                 className="w-full h-[40px] px-3 flex items-center justify-center
                                    font-['Open Sans'] text-[14px] font-medium
                                    text-white
-                                   bg-gradient-to-r from-blue-500 to-purple-500
+                                   bg-gradient-to-r from-blue-600 to-[#0C86D8]
                                    rounded-[6px]
                                    transition-all duration-200
-                                   hover:from-blue-600 hover:to-purple-600"
+                                   hover:from-blue-700 hover:to-[#0C86D8]"
                             >
                                 Sign Up
                             </a>

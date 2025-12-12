@@ -9,16 +9,16 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' ;
   const isAdminPage = pathname.startsWith('/admin');
 
-  if (isAdminPage) {
+  if (isAdminPage || isAuthPage) {
     return <>{children}</>;
   } 
 
   return (
     <>
-      {!isAuthPage && <Navbar />}
-      <main className="min-h-screen">{children}</main>
+      <Navbar />
+      <main className="min-h-screen pt-16">{children}</main>
 
-      {!isAuthPage && <Footer />}
+       <Footer />
     </>
   );
 }

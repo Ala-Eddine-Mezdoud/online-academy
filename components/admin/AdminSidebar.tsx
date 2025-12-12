@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, GraduationCap, BookOpen, UserCheck, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, BookOpen, UserCheck, Video, MessageSquare, LogOut } from 'lucide-react';
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -13,10 +13,12 @@ export function AdminSidebar() {
     { path: '/admin/teachers', label: 'Teachers', icon: GraduationCap },
     { path: '/admin/courses', label: 'Courses', icon: BookOpen },
     { path: '/admin/enrollments', label: 'Enrollments', icon: UserCheck },
+    { path: '/admin/live-sessions', label: 'Live Sessions', icon: Video },
+    { path: '/admin/contact-messages', label: 'Contact Messages', icon: MessageSquare },
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
+    <aside className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col fixed top-0 left-0 overflow-y-auto">
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-blue-500">Admin</h1>
       </div>

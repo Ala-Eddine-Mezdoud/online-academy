@@ -40,17 +40,17 @@ export default function Footer() {
                         <h4 className="text-lg font-semibold mb-4 text-gray-900">Courses</h4>
                         <ul className="space-y-2">
                             <li>
-                                <Link href="/courses" className="text-gray-600 hover:text-gray-900 transition">
+                                <Link href="/course" className="text-gray-600 hover:text-gray-900 transition">
                                     All Courses
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/teachers" className="text-gray-600 hover:text-gray-900 transition">
+                                <Link href="/teacher" className="text-gray-600 hover:text-gray-900 transition">
                                     Teachers
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/courses/popular" className="text-gray-600 hover:text-gray-900 transition">
+                                <Link href="/course/popular" className="text-gray-600 hover:text-gray-900 transition">
                                     Popular Courses
                                 </Link>
                             </li>

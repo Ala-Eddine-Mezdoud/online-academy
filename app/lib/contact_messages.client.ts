@@ -21,7 +21,14 @@ export const createContactMessage = async (payload: Database['public']['Tables']
 
 // Admin: get all messages (RLS should allow admins, as yassine assured)
 export const getAllContactMessages = async () => {
-  const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('contact_messages').select('*').is('deleted_at', null).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+};
+
+// Admin: soft delete a message
+export const deleteContactMessage = async (id: number) => {
+  const { data, error } = await supabase.from('contact_messages').update({ deleted_at: new Date().toISOString() }).eq('id', id).select().single();
   if (error) throw error;
   return data;
 };
