@@ -14,7 +14,9 @@ export default function Navbar() {
     const isContactPage = pathname === '/contact';
 
     return (
-        <nav className="bg-white container mx-auto shadow-sm fixed top-0 left-0 right-0 z-50">
+        <nav className="bg-white  shadow-sm fixed top-0 left-0 right-0 z-50 py-4">
+            <div className='container mx-auto'>
+
             <div className="">
                 <div className="flex justify-between h-18">
                     {/* Logo */}
@@ -23,13 +25,13 @@ export default function Navbar() {
                             EduConnect
                         </a>
                     </div>
-                    
+
                     <div className="flex">
                         {/* Desktop Navigation */}
                         <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
                             <a
                                 href="/"
-                                className={isHomePage 
+                                className={isHomePage
                                     ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
                                     : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
                                 }
@@ -38,7 +40,7 @@ export default function Navbar() {
                             </a>
                             <a
                                 href="/course"
-                                className={isCoursePage 
+                                className={isCoursePage
                                     ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
                                     : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
                                 }
@@ -47,7 +49,7 @@ export default function Navbar() {
                             </a>
                             <a
                                 href="/teacher"
-                                className={isTeacherPage 
+                                className={isTeacherPage
                                     ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
                                     : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
                                 }
@@ -56,7 +58,7 @@ export default function Navbar() {
                             </a>
                             <a
                                 href="/about"
-                                className={isAboutPage 
+                                className={isAboutPage
                                     ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
                                     : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
                                 }
@@ -65,7 +67,7 @@ export default function Navbar() {
                             </a>
                             <a
                                 href="/contact"
-                                className={isContactPage 
+                                className={isContactPage
                                     ? "border-blue-500 font-['Open Sans'] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-900"
                                     : "border-transparent hover:border-gray-300 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-gray-700"
                                 }
@@ -202,6 +204,7 @@ export default function Navbar() {
                     </div>
                 </div>
             )}
+            </div>
         </nav>
     );
 }

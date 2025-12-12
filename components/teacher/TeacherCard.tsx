@@ -42,7 +42,7 @@ export default function TeacherCard({
       <div className="mt-5 flex flex-1 flex-col">
         <h3 className="text-2xl font-semibold text-slate-900">{name}</h3>
         <p className="text-sm font-semibold text-blue-600">{title}</p>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">{bio}</p>
+
         <div className="mt-4 space-y-2 text-sm text-slate-600">
           <div className="flex items-center gap-2">
             <Image
@@ -95,18 +95,8 @@ export default function TeacherCard({
             )}
           </div>
         </div>
-        <hr className="my-5 border-slate-100" />
-        <div className="flex flex-wrap gap-2">
-          {skills.map((skill) => (
-            <span
-              key={skill}
-              className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
-        <div className="mt-auto pt-6">
+
+        <div className=" pt-6 mt-4">
           <button className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-blue-500 hover:text-blue-600">
             View Courses
             <svg
