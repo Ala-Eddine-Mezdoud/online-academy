@@ -1,236 +1,426 @@
-"use client";
-import React, { useState } from 'react';
-import { Bell, BookOpen, Layers, Search, Users } from 'lucide-react';
-import { teachers as initialTeachers, courses as initialCourses, Teacher, NewTeacher, Course } from '@/app/lib/mockData';
-import Modal from '@/modals/AddModal';
-import AssignCourseToTeacher from '@/components/dashboard/AssignCourseToTeacher';
-import Link from 'next/link'; 
-import { StatCard } from "@/components/dashboard/StatCard";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Search, Link as LinkIcon, X } from 'lucide-react';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Textarea } from '@/components/admin/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/admin/ui/dialog';
+import { Label } from '@/components/admin/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
+import { getAllProfiles, createProfile, updateProfile, deleteProfile } from '@/app/lib/profiles.client';
+import { createUser } from '@/app/lib/actions';
+import { wilayas } from '@/lib/mockData';
+
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
-  const [courses, setCourses] = useState<Course[]>(initialCourses ?? []);
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const uniqueMajorsCount = new Set(teachers.map((t) => t.department ?? '')).size;
-
-  const filteredTeachers = teachers.filter((teacher) => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch = teacher.name.toLowerCase().includes(q) ||
-                         (teacher.email ?? '').toLowerCase().includes(q) ||
-                         (teacher.department ?? '').toLowerCase().includes(q);
-    return matchesSearch;
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_number: '',
+    wilaya: '',
+    role_title: '',
+    description: '',
   });
 
-  const handleAddTeacher = (teacherData: NewTeacher) => {
-    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? (crypto as any).randomUUID() : `${Date.now()}-${Math.floor(Math.random()*100000)}`;
-    const newTeacher: Teacher = {
-      id,
-      ...teacherData,
-    };
-    setTeachers([...teachers, newTeacher]);
-  };
-
-  const handleEditTeacher = (teacher: Teacher) => {
-    const newName = prompt('Edit teacher name:', teacher.name);
-    if (newName && newName !== teacher.name) {
-      setTeachers(teachers.map(t => 
-        t.id === teacher.id ? { ...t, name: newName } : t
-      ));
-      alert('Teacher updated successfully!');
+  const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllProfiles('teacher');
+      setTeachers(data || []);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteTeacher = (teacherId: string) => {
-    if (confirm('Are you sure you want to delete this teacher?')) {
-      setTeachers(teachers.filter(t => t.id !== teacherId));
-      alert('Teacher deleted successfully!');
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
+
+  const filteredTeachers = teachers.filter(teacher =>
+    teacher.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    teacher.role_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    teacher.wilaya?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleCreate = async () => {
+    try {
+      const result = await createUser(formData.email, 'teacher', {
+        role_title: `${formData.first_name} ${formData.last_name}`,
+        description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
+        phone_number: formData.phone_number,
+        wilaya: formData.wilaya,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      await fetchTeachers();
+      setIsCreateOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating teacher:', error);
     }
   };
 
-  const handleAssignCourse = (courseId: number, teacherId: string) => {
-    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, teacher_id: teacherId, assignedTeacher: teachers.find(t => t.id === teacherId)?.name ?? '' } : c));
-    alert('Course assigned to teacher successfully');
+  const handleEdit = async () => {
+    if (!selectedTeacher) return;
+    try {
+      await updateProfile(selectedTeacher.id, {
+        role_title: `${formData.first_name} ${formData.last_name}`,
+        description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
+        phone_number: formData.phone_number,
+        wilaya: formData.wilaya,
+      });
+      await fetchTeachers();
+      setIsEditOpen(false);
+      setSelectedTeacher(null);
+      resetForm();
+    } catch (error) {
+      console.error('Error updating teacher:', error);
+    }
   };
 
-  
+  const handleDelete = async () => {
+    if (!selectedTeacher) return;
+    try {
+      await deleteProfile(selectedTeacher.id);
+      await fetchTeachers();
+      setIsDeleteOpen(false);
+      setSelectedTeacher(null);
+    } catch (error) {
+      console.error('Error deleting teacher:', error);
+    }
+  };
 
-return (
-  <>
-    {/* MAIN PAGE CONTENT */}
-    <div className="flex-1 bg-gray-50 overflow-auto">
-     
+  const openEdit = (teacher: any) => {
+    setSelectedTeacher(teacher);
+    const [first, ...last] = (teacher.role_title || '').split(' ');
+    
+    // Parse description
+    const descLines = (teacher.description || '').split('\n');
+    const emailLine = descLines.find((l: string) => l.startsWith('Email: '));
+    const titleLine = descLines.find((l: string) => l.startsWith('Title: '));
+    const bioLine = descLines.find((l: string) => l.startsWith('Bio: '));
+    
+    setFormData({
+      first_name: first || '',
+      last_name: last.join(' ') || '',
+      email: emailLine?.replace('Email: ', '') || '',
+      role_title: titleLine?.replace('Title: ', '') || '',
+      description: bioLine?.replace('Bio: ', '') || teacher.description || '',
+      phone_number: teacher.phone_number || '',
+      wilaya: teacher.wilaya || '',
+    });
+    setIsEditOpen(true);
+  };
 
-      <div className="p-8">
-      
-         {/* Stats */}
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-  <StatCard
-              title="Total Teachers"
-              value={teachers.length.toString()}
-              icon={(props) => <Users {...props} />}
-              color="blue"
+  const openDelete = (teacher: any) => {
+    setSelectedTeacher(teacher);
+    setIsDeleteOpen(true);
+  };
+
+  const resetForm = () => {
+    setFormData({ first_name: '', last_name: '', email: '', phone_number: '', wilaya: '', role_title: '', description: '' });
+  };
+
+  if (loading) return <div className="p-8">Loading teachers...</div>;
+
+  return (
+    <div className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Teachers Management</h1>
+          <p className="text-gray-500">Manage your platform teachers</p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Teacher
+        </Button>
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="p-4 border-b border-gray-200">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search teachers by name, email, or wilaya..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
             />
-
-  <StatCard
-    title="Total Courses"
-    value={courses.length.toString()}
-    icon={() => <BookOpen />}
-    color="orange"
-  />
-
-  <StatCard
-    title="Total Departements"
-    value={uniqueMajorsCount.toString()}
-    icon={() => < Layers/>}
-    color="cyan"
-  />
-</div>
-
-        {/* TABLE + Actions (two-column) */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">All Teachers</h3>
-                    <p className="text-xs text-gray-500">Complete list of all teacher accounts.</p>
-                  </div>
-                  <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
-                  >
-                    + Add Teacher
-                  </button>
-                </div>
-
-                {/* Search + Filter */}
-                <div className="flex gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search teachers..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Name</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Email</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Department</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Actions</th>
-                    </tr>
-                  </thead>
-
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredTeachers.map((teacher) => (
-                      <tr key={teacher.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 table-text">{teacher.name}</td>
-                        <td className="px-4 py-2 table-text">{teacher.email}</td>
-                        <td className="px-4 py-2 table-text">{teacher.department}</td>
-                        <td className="px-4 py-2">
-                          <div className="flex gap-2 justify-end">
-                            <button onClick={() => handleEditTeacher(teacher)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-                            <button onClick={() => handleDeleteTeacher(teacher.id)} className="text-xs text-red-600 hover:text-red-800">Delete</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {filteredTeachers.length === 0 && (
-                <div className="px-6 py-12 text-center text-gray-500">No teachers found matching your criteria.</div>
-              )}
-            </div>
           </div>
+        </div>
 
-          <aside className="w-full lg:w-80">
-            <AssignCourseToTeacher courses={courses} teachers={teachers} onAssign={handleAssignCourse} />
-          </aside>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email (Desc)</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title (Desc)</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Phone</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Wilaya</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredTeachers.map((teacher) => {
+                const descLines = (teacher.description || '').split('\n');
+                const email = descLines.find((l: string) => l.startsWith('Email: '))?.replace('Email: ', '') || '-';
+                const title = descLines.find((l: string) => l.startsWith('Title: '))?.replace('Title: ', '') || '-';
+                
+                return (
+                  <tr key={teacher.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {teacher.role_title || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{title}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.phone_number || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.wilaya || '-'}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(teacher)}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDelete(teacher)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Teacher</DialogTitle>
+            <DialogDescription>
+              Add a new teacher to the platform. Note: This does not create a login account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name *</Label>
+                <Input
+                  id="first_name"
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  placeholder="Ahmed"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name *</Label>
+                <Input
+                  id="last_name"
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  placeholder="Benali"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="teacher@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role_title">Role Title</Label>
+              <Input
+                id="role_title"
+                value={formData.role_title}
+                onChange={(e) => setFormData({ ...formData, role_title: e.target.value })}
+                placeholder="Senior Software Engineer"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                placeholder="+213 555 123 456"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wilaya">Wilaya</Label>
+              <Select value={formData.wilaya} onValueChange={(value: string) => setFormData({ ...formData, wilaya: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select wilaya" />
+                </SelectTrigger>
+                <SelectContent>
+                  {wilayas.map((wilaya) => (
+                    <SelectItem key={wilaya} value={wilaya}>
+                      {wilaya}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Bio)</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Brief bio about the teacher"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600">
+              Create Teacher
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Teacher</DialogTitle>
+            <DialogDescription>
+              Update the teacher information.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-first_name">First Name *</Label>
+                <Input
+                  id="edit-first_name"
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-last_name">Last Name *</Label>
+                <Input
+                  id="edit-last_name"
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email *</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role_title">Role Title</Label>
+              <Input
+                id="edit-role_title"
+                value={formData.role_title}
+                onChange={(e) => setFormData({ ...formData, role_title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Phone Number</Label>
+              <Input
+                id="edit-phone"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-wilaya">Wilaya</Label>
+              <Select value={formData.wilaya} onValueChange={(value: string) => setFormData({ ...formData, wilaya: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select wilaya" />
+                </SelectTrigger>
+                <SelectContent>
+                  {wilayas.map((wilaya) => (
+                    <SelectItem key={wilaya} value={wilaya}>
+                      {wilaya}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description (Bio)</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsEditOpen(false); setSelectedTeacher(null); resetForm(); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleEdit} className="bg-blue-500 hover:bg-blue-600">
+              Update Teacher
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the teacher &quot;{selectedTeacher?.role_title}&quot;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setIsDeleteOpen(false); setSelectedTeacher(null); }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-
-    {/* MODAL — now outside the scrollable page */}
-    <Modal 
-      isOpen={isAddModalOpen} 
-      onClose={() => setIsAddModalOpen(false)} 
-      title="Add New Teacher"
-    >
-          <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const form = e.currentTarget as HTMLFormElement;
-          const formData = new FormData(form);
-
-          const teacherData = {
-            name: String(formData.get('name') || ''),
-            email: String(formData.get('email') || ''),
-            department: String(formData.get('department') || 'Computer Science'),
-          };
-
-          handleAddTeacher(teacherData);
-          setIsAddModalOpen(false);
-        }}
-        className="space-y-4"
-      >
-        <div>
-          <label className="block text-sm mb-2">Teacher Name</label>
-          <input name="name" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
-        </div>
-
-        <div>
-          <label className="block text-sm mb-2">Email Address</label>
-          <input name="email" type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
-        </div>
-
-        <div>
-          <label className="block text-sm mb-2">Department</label>
-          <select name="department" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <option>Computer Science</option>
-            <option>Mathematics</option>
-            <option>Physics</option>
-            <option>Chemistry</option>
-            <option>Biology</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm mb-2">Status</label>
-          <select name="status" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-
-        <div className="flex justify-end gap-3 pt-4">
-          <button 
-            type="button" 
-            onClick={() => setIsAddModalOpen(false)} 
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm"
-          >
-            Add Teacher
-          </button>
-        </div>
-      </form>
-    </Modal>
-  </>
-);
+  );
 }

@@ -1,407 +1,162 @@
-"use client";
-import React, { useState } from "react";
-import { Bell, Users, GraduationCap, BookOpen } from "lucide-react";
-import {
-  teachers as initialTeachers,
-  students as initialStudents,
-  courses as initialCourses,
-  Teacher,
-  Student,
-  Course,
-  NewTeacher,
-} from "@/app/lib/mockData";
+'use client';
 
-import AssignCourseToTeacher from "@/components/dashboard/AssignCourseToTeacher";
-import EnrollStudent from "@/components/dashboard/EnrollStudent";
-import Modal from "@/modals/AddModal";
-import Link from "next/link";
-import { StatCard } from "@/components/dashboard/StatCard";
+import { useEffect, useState } from 'react';
+import { Users, GraduationCap, BookOpen, TrendingUp, TriangleAlert } from 'lucide-react';
+import { StatsCard } from '@/components/admin/StatsCard';
+import { getAllProfiles } from '@/app/lib/profiles.client';
+import { getAllCourses } from '@/app/lib/courses.client';
+import { getAllEnrollments } from '@/app/lib/enrollments.client';
+import { checkAdminConfig } from '@/app/lib/actions';
+import { Alert, AlertDescription, AlertTitle } from '@/components/admin/ui/alert';
 
-export default function AdminOverviewPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
-  const [students, setStudents] = useState<Student[]>(initialStudents ?? []);
-  const [courses, setCourses] = useState<Course[]>(initialCourses ?? []);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const filteredTeachers = teachers.filter((teacher) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      teacher.name.toLowerCase().includes(q) ||
-      (teacher.email ?? "").toLowerCase().includes(q) ||
-      (teacher.department ?? "").toLowerCase().includes(q)
-    );
+export default function DashboardPage() {
+  const [stats, setStats] = useState({
+    students: 0,
+    teachers: 0,
+    courses: 0,
+    enrollments: 0
   });
+  const [recentStudents, setRecentStudents] = useState<any[]>([]);
+  const [popularCourses, setPopularCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [configError, setConfigError] = useState(false);
+  
 
-  const handleAddTeacher = (teacherData: NewTeacher) => {
-    const id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? (crypto as any).randomUUID()
-        : `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [studentsData, teachersData, coursesData, enrollmentsData, config] = await Promise.all([
+          getAllProfiles('student'),
+          getAllProfiles('teacher'),
+          getAllCourses(),
+          getAllEnrollments(),
+          checkAdminConfig()
+        ]);
 
-    const newTeacher: Teacher = { id, ...teacherData };
-    setTeachers((prev) => [...prev, newTeacher]);
-  };
+        if (config.missingKey) {
+          setConfigError(true);
+        }
 
-  const handleEditTeacher = (teacher: Teacher) => {
-    const newName = prompt("Edit teacher name:", teacher.name);
-    if (newName && newName !== teacher.name) {
-      setTeachers((prev) =>
-        prev.map((t) => (t.id === teacher.id ? { ...t, name: newName } : t))
-      );
-      alert("Teacher updated successfully!");
-    }
-  };
+        setStats({
+          students: studentsData?.length || 0,
+          teachers: teachersData?.length || 0,
+          courses: coursesData?.length || 0,
+          enrollments: enrollmentsData?.length || 0
+        });
 
-  const handleDeleteTeacher = (teacherId: string) => {
-    if (confirm("Are you sure you want to delete this teacher?")) {
-      setTeachers((prev) => prev.filter((t) => t.id !== teacherId));
-      alert("Teacher deleted successfully!");
-    }
-  };
+        setRecentStudents(studentsData?.slice(0, 5) || []);
+        
+        // Calculate popular courses based on enrollments
+        const courseEnrollmentCounts: Record<number, number> = {};
+        enrollmentsData?.forEach((e: any) => {
+          if (e.course_id) {
+            courseEnrollmentCounts[e.course_id] = (courseEnrollmentCounts[e.course_id] || 0) + 1;
+          }
+        });
 
-  const handleAssignCourse = (courseId: number, teacherId: string) => {
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.id === courseId
-          ? {
-              ...c,
-              teacher_id: teacherId,
-              assignedTeacher:
-                teachers.find((t) => t.id === teacherId)?.name ?? "",
-            }
-          : c
-      )
-    );
-    alert("Course assigned to teacher successfully");
-  };
+        const sortedCourses = coursesData?.map((c: any) => ({
+          ...c,
+          enrollments_count: courseEnrollmentCounts[c.id] || 0
+        })).sort((a: any, b: any) => b.enrollments_count - a.enrollments_count).slice(0, 4) || [];
 
-  const handleEnrollStudent = (courseId: number, studentId: string) => {
-    const course = courses.find((c) => c.id === courseId);
-    const student = students.find((s) => s.id === studentId);
-    alert(`${student?.name ?? "Student"} enrolled in ${course?.title ?? "course"}`);
-  };
+        setPopularCourses(sortedCourses);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleEditStudent = (student: Student) => {
-    const currentName = student.name ?? "";
-    const newName = prompt("Edit student name:", currentName);
-    if (newName !== null && newName !== currentName) {
-      setStudents((prev) =>
-        prev.map((s) => (s.id === student.id ? { ...s, name: newName } : s))
-      );
-      alert("Student updated successfully!");
-    }
-  };
+    fetchData();
+  }, []);
 
-  const handleDeleteStudent = (studentId: string) => {
-    if (confirm("Are you sure you want to delete this student?")) {
-      setStudents((prev) => prev.filter((s) => s.id !== studentId));
-      alert("Student deleted successfully!");
-    }
-  };
 
-  const handleEditCourse = (course: Course) => {
-    const newTitle = prompt("Edit course title:", course.title);
-    if (newTitle && newTitle !== course.title) {
-      setCourses((prev) =>
-        prev.map((c) =>
-          c.id === course.id ? { ...c, title: newTitle } : c
-        )
-      );
-      alert("Course updated successfully!");
-    }
-  };
 
-  const handleDeleteCourse = (courseId: number) => {
-    if (confirm("Are you sure you want to delete this course?")) {
-      setCourses((prev) => prev.filter((c) => c.id !== courseId));
-      alert("Course deleted successfully!");
-    }
-  };
-
+  if (loading) {
+    return <div className="p-8">Loading dashboard...</div>;
+  }
+  
   return (
-    <>
-      <div className="flex-1 bg-gray-50 overflow-auto">
-       
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
+        <p className="text-gray-500">Welcome back! Here's what's happening with your platform.</p>
+      </div>
+      
+      {configError && (
+        <Alert variant="destructive" className="mb-6">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertTitle>Configuration Error</AlertTitle>
+          <AlertDescription>
+            The Supabase Service Role Key is missing. You will not be able to create new users (Students/Teachers).
+            Please add <code>SUPABASE_SERVICE_ROLE_KEY</code> to your <code>.env</code> file.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatsCard
+          title="Total Students"
+          value={stats.students}
+          icon={Users}
+          trend={{ value: 'From database', isPositive: true }}
+        />
+        <StatsCard
+          title="Total Teachers"
+          value={stats.teachers}
+          icon={GraduationCap}
+          trend={{ value: 'From database', isPositive: true }}
+        />
+        <StatsCard
+          title="Total Courses"
+          value={stats.courses}
+          icon={BookOpen}
+          trend={{ value: 'From database', isPositive: true }}
+        />
+        <StatsCard
+          title="Total Enrollments"
+          value={stats.enrollments}
+          icon={TrendingUp}
+          trend={{ value: 'From database', isPositive: true }}
+        />
+      </div>
 
-        <div className="p-8">
-          {/* Stats Section with StatCard */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <StatCard
-              title="Total Teachers"
-              value={teachers.length.toString()}
-              icon={(props) => <Users {...props} />}
-              color="blue"
-            />
-            <StatCard
-              title="Total Students"
-              value={students.length.toString()}
-              icon={(props) => <GraduationCap {...props} />}
-              color="green"
-            />
-            <StatCard
-              title="Total Courses"
-              value={courses.length.toString()}
-              icon={(props) => <BookOpen {...props} />}
-              color="orange"
-            />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Students</h3>
+          <div className="space-y-4">
+            {recentStudents.map((student) => (
+              <div key={student.id} className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">{student.role_title || 'Unknown Name'}</p>
+                  <p className="text-sm text-gray-500">{student.wilaya || 'No location'}</p>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {/* We don't have enrollment count per student easily available without more queries, skipping for now */}
+                  Student
+                </span>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Main content */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
-            <div>
-              <div className="space-y-6">
-                {/* Teachers preview */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Teachers</h3>
-                    <p className="text-xs text-gray-500">Recent / sample teachers</p>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                              <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Name</th>
-                              <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Email</th>
-                              <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Department</th>
-                              <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900 w-28">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {teachers.slice(0, 5).map((t) => (
-                          <tr key={t.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 table-text">{t.name}</td>
-                            <td className="px-4 py-2 table-text">{t.email}</td>
-                            <td className="px-4 py-2 table-text">{t.department}</td>
-                            <td className="px-4 py-2 text-sm text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => handleEditTeacher(t)}
-                                  className="text-xs text-blue-600 hover:text-blue-800"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteTeacher(t.id)}
-                                  className="text-xs text-red-600 hover:text-red-800"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end">
-                    <Link
-                      href="/dashboard/admin/teachers"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View all →
-                    </Link>
-                  </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Popular Courses</h3>
+          <div className="space-y-4">
+            {popularCourses.map((course) => (
+              <div key={course.id} className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">{course.title}</p>
+                  <p className="text-sm text-gray-500">ID: {course.id}</p>
                 </div>
-
-                {/* Students preview */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Students</h3>
-                    <p className="text-xs text-gray-500">Recent / sample students</p>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Name</th>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Student ID</th>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Major</th>
-                          <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900 w-28">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {students.slice(0, 5).map((s) => (
-                          <tr key={s.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 table-text">{s.name}</td>
-                            <td className="px-4 py-2 table-text">{s.studentId ?? "-"}</td>
-                            <td className="px-4 py-2 table-text">{s.major ?? "-"}</td>
-                            <td className="px-4 py-2 text-sm text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => handleEditStudent(s)}
-                                  className="text-xs text-blue-600 hover:text-blue-800"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteStudent(s.id)}
-                                  className="text-xs text-red-600 hover:text-red-800"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end">
-                    <Link
-                      href="/dashboard/admin/students"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View all →
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Courses preview */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Courses</h3>
-                    <p className="text-xs text-gray-500">Recent / sample courses</p>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Code</th>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Title</th>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Department</th>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Assigned Teacher</th>
-                          <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900 w-28">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {courses.slice(0, 5).map((c) => (
-                          <tr key={c.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 table-text">{c.code ?? "-"}</td>
-                            <td className="px-4 py-2 table-text">{c.title}</td>
-                            <td className="px-4 py-2 table-text">{c.department ?? "-"}</td>
-                            <td className="px-4 py-2 table-text">
-                              {c.assignedTeacher ?? "-"}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => handleEditCourse(c)}
-                                  className="text-xs text-blue-600 hover:text-blue-800"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteCourse(c.id)}
-                                  className="text-xs text-red-600 hover:text-red-800"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end">
-                    <Link
-                      href="/dashboard/admin/courses"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View all →
-                    </Link>
-                  </div>
-                </div>
+                <span className="text-sm text-blue-600">
+                  {course.enrollments_count} students
+                </span>
               </div>
-            </div>
-
-            {/* Right sidebar */}
-            <aside className="w-full lg:w-72">
-              <div className="space-y-4">
-                <AssignCourseToTeacher
-                  courses={courses}
-                  teachers={teachers}
-                  onAssign={handleAssignCourse}
-                />
-                <EnrollStudent
-                  courses={courses}
-                  students={students}
-                  onEnroll={handleEnrollStudent}
-                />
-              </div>
-            </aside>
+            ))}
           </div>
         </div>
       </div>
-
-      {/* Modal */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Add New Teacher"
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const form = e.currentTarget as HTMLFormElement;
-            const formData = new FormData(form);
-
-            const teacherData = {
-              name: String(formData.get("name") || ""),
-              email: String(formData.get("email") || ""),
-              department: String(formData.get("department") || "Computer Science"),
-            } as NewTeacher;
-
-            handleAddTeacher(teacherData);
-            setIsAddModalOpen(false);
-          }}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm mb-2">Teacher Name</label>
-            <input
-              name="name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-2">Email Address</label>
-            <input
-              name="email"
-              type="email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-2">Department</label>
-            <select
-              name="department"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            >
-              <option>Computer Science</option>
-              <option>Mathematics</option>
-              <option>Physics</option>
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsAddModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">
-              Add Teacher
-            </button>
-          </div>
-        </form>
-      </Modal>
-    </>
+    </div>
   );
 }
