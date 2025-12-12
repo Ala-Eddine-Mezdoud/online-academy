@@ -8,13 +8,13 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/admin/students', label: 'Students', icon: Users },
-    { path: '/admin/teachers', label: 'Teachers', icon: GraduationCap },
-    { path: '/admin/courses', label: 'Courses', icon: BookOpen },
-    { path: '/admin/enrollments', label: 'Enrollments', icon: UserCheck },
-    { path: '/admin/live-sessions', label: 'Live Sessions', icon: Video },
-    { path: '/admin/contact-messages', label: 'Contact Messages', icon: MessageSquare },
+    { path: '/dashboard/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/dashboard/admin/students', label: 'Students', icon: Users },
+    { path: '/dashboard/admin/teachers', label: 'Teachers', icon: GraduationCap },
+    { path: '/dashboard/admin/courses', label: 'Courses', icon: BookOpen },
+    { path: '/dashboard/admin/enrollments', label: 'Enrollments', icon: UserCheck },
+    { path: '/dashboard/admin/live-sessions', label: 'Live Sessions', icon: Video },
+    { path: '/dashboard/admin/contact-messages', label: 'Contact Messages', icon: MessageSquare },
 
   ];
 
