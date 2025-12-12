@@ -1,6 +1,7 @@
 import { Poppins, Inter } from "next/font/google";
-import ConditionalLayout from "@/components/layout/ConditionalLayout";
-import "./globals.css";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import "../globals.css";
 
 const poppins = Poppins({
   weight: ["400", "600", "700"],
@@ -22,9 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${inter.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-inter">
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <Navbar />
+        {children}
+        <Footer />
       </body>
     </html>
   );

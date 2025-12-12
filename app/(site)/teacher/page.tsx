@@ -43,10 +43,11 @@ const instructors = [
   },
 ];
 
+
 export default function Teacher() {
   return (
     <div>
-      <section className="space-y-10 bg-white pt-20 pb-32 px-10 md:px-20">
+      <section className="space-y-10 bg-white py-32 container mx-auto">
         <header className="space-y-4 text-center">
           <h1 className="text-5xl font-bold text-slate-900">
             Meet Our Expert Instructors
@@ -63,31 +64,8 @@ export default function Teacher() {
           ))}
         </div>
       </section>
-      {"  "}
-      <div className="bg-neutral-100 flex flex-col justify-center items-center pt-28 pb-28 gap-5 pr-10 pl-10">
-        <h1 className="text-4xl font-bold text-slate-900 max-w-96 text-center">
-          Ready to Learn from the Best?
-        </h1>
-        <p className="mx-auto max-w-2xl text-xl text-neutral-700 text-center">
-          Explore our extensive catalog of courses and find the perfect learning
-          path with our world-class instructors.
-        </p>
-        <div className="">
-          <button className="text-white bg-blue-500 cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-8 py-3 text-sm font-semibold transition hover:border-black hover:text-black">
-            Explore All Courses
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="h-4 w-4"
-            >
-              <path d="m10 7 5 5-5 5" />
-            </svg>
-          </button>
-        </div>
-      </div>
+
+
     </div>
   );
 }

@@ -15,6 +15,7 @@ export function AdminSidebar() {
     { path: '/admin/enrollments', label: 'Enrollments', icon: UserCheck },
     { path: '/admin/live-sessions', label: 'Live Sessions', icon: Video },
     { path: '/admin/contact-messages', label: 'Contact Messages', icon: MessageSquare },
+
   ];
 
   return (
@@ -22,22 +23,21 @@ export function AdminSidebar() {
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-blue-500">Admin</h1>
       </div>
-      
+
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
-            
+
             return (
               <li key={item.path}>
                 <Link
                   href={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
@@ -47,7 +47,7 @@ export function AdminSidebar() {
           })}
         </ul>
       </nav>
-      
+
       <div className="p-4 border-t border-gray-200">
         <button className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors w-full">
           <LogOut className="w-5 h-5" />

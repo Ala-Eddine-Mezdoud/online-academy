@@ -1,322 +1,486 @@
-// contents of file
-"use client";
-import React, { useState } from "react";
-import { Bell, Search, Filter } from "lucide-react";
-import {
-  courses as initialCourses,
-  teachers as initialTeachers,
-  Course,
-  NewCourse,
-  Teacher,
-  students,
-} from "@/app/lib/mockData";
-import Modal from "@/modals/AddModal";
-import AssignCourseToTeacher from "@/components/dashboard/AssignCourseToTeacher";
-import Link from "next/link";
-import { BookOpen, Layers, CheckCircle, Users } from "lucide-react";
-import { StatCard } from "@/components/dashboard/StatCard";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Textarea } from '@/components/admin/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/admin/ui/dialog';
+import { Label } from '@/components/admin/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
+import { Badge } from '@/components/admin/ui/badge';
+import { getAllCourses, createCourse, updateCourse, deleteCourse } from '@/app/lib/courses.client';
+import { getAllProfiles } from '@/app/lib/profiles.client';
+import { getAllCategories } from '@/app/lib/categories.client';
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers ?? []);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState<string>("all");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const departments = [
-    "all",
-    ...Array.from(
-      new Set(courses.map((c) => c.department ?? "").filter(Boolean))
-    ),
-  ];
-
-  const filteredCourses = courses.filter((course) => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      (course.code ?? "").toLowerCase().includes(q) ||
-      course.title.toLowerCase().includes(q) ||
-      (course.department ?? "").toLowerCase().includes(q) ||
-      (course.assignedTeacher ?? "").toLowerCase().includes(q);
-    const matchesFilter =
-      filterDepartment === "all" ||
-      (course.department ?? "") === filterDepartment;
-    return matchesSearch && matchesFilter;
+  const [courses, setCourses] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    title: '',
+    teacher_id: '',
+    category_id: '',
+    overview: '',
+    description: '',
+    num_weeks: '',
+    price: '',
   });
 
-  const handleAddCourse = (courseData: NewCourse) => {
-    const nextId = courses.length
-      ? Math.max(...courses.map((c) => c.id)) + 1
-      : 1;
-    const newCourse: Course = {
-      id: nextId,
-      ...courseData,
-    };
-    setCourses([...courses, newCourse]);
-  };
-
-  const handleEditCourse = (course: Course) => {
-    const newTitle = prompt("Edit course title:", course.title);
-    if (newTitle && newTitle !== course.title) {
-      setCourses(
-        courses.map((c) => (c.id === course.id ? { ...c, title: newTitle } : c))
-      );
-      alert("Course updated successfully!");
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [coursesData, teachersData, categoriesData] = await Promise.all([
+        getAllCourses(),
+        getAllProfiles('teacher'),
+        getAllCategories()
+      ]);
+      setCourses(coursesData || []);
+      setTeachers(teachersData || []);
+      setCategories(categoriesData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteCourse = (courseId: number) => {
-    if (confirm("Are you sure you want to delete this course?")) {
-      setCourses(courses.filter((c) => c.id !== courseId));
-      alert("Course deleted successfully!");
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const filteredCourses = courses.filter(course =>
+    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    // Note: We might need to join teacher/category names if they are not in the course object
+    // Assuming course object has teacher_id and category_id, we might need to lookup names
+    // For now, let's just filter by title
+    teachers.find(t => t.id === course.teacher_id)?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    categories.find(c => c.id === course.category_id)?.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleCreate = async () => {
+    try {
+      await createCourse({
+        title: formData.title,
+        teacher_id: formData.teacher_id,
+        category_id: Number(formData.category_id),
+        overview: formData.overview,
+        description: formData.description,
+        num_weeks: Number(formData.num_weeks),
+        price: Number(formData.price),
+      });
+      await fetchData();
+      setIsCreateOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating course:', error);
     }
   };
 
-  const handleAssignCourse = (courseId: number, teacherId: string) => {
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.id === courseId
-          ? {
-              ...c,
-              teacher_id: teacherId,
-              assignedTeacher:
-                teachers.find((t) => t.id === teacherId)?.name ?? "",
-            }
-          : c
-      )
-    );
-    alert("Course assigned to teacher successfully");
+  const handleEdit = async () => {
+    if (!selectedCourse) return;
+    try {
+      await updateCourse(selectedCourse.id, {
+        title: formData.title,
+        teacher_id: formData.teacher_id,
+        category_id: Number(formData.category_id),
+        overview: formData.overview,
+        description: formData.description,
+        num_weeks: Number(formData.num_weeks),
+        price: Number(formData.price),
+      });
+      await fetchData();
+      setIsEditOpen(false);
+      setSelectedCourse(null);
+      resetForm();
+    } catch (error) {
+      console.error('Error updating course:', error);
+    }
   };
+
+  const handleDelete = async () => {
+    if (!selectedCourse) return;
+    try {
+      await deleteCourse(selectedCourse.id);
+      await fetchData();
+      setIsDeleteOpen(false);
+      setSelectedCourse(null);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
+  };
+
+  const openEdit = (course: any) => {
+    setSelectedCourse(course);
+    setFormData({
+      title: course.title,
+      teacher_id: course.teacher_id || '',
+      category_id: String(course.category_id || ''),
+      overview: course.overview || '',
+      description: course.description || '',
+      num_weeks: String(course.num_weeks || ''),
+      price: String(course.price || ''),
+    });
+    setIsEditOpen(true);
+  };
+
+  const openDelete = (course: any) => {
+    setSelectedCourse(course);
+    setIsDeleteOpen(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      teacher_id: '',
+      category_id: '',
+      overview: '',
+      description: '',
+      num_weeks: '',
+      price: '',
+    });
+  };
+
+  const getTeacherName = (id: string) => {
+    const teacher = teachers.find(t => t.id === id);
+    return teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Unknown';
+  };
+
+  const getCategoryName = (id: number) => {
+    const category = categories.find(c => c.id === id);
+    return category ? category.name : 'Unknown';
+  };
+
+  if (loading) return <div className="p-8">Loading courses...</div>;
 
   return (
-    <div className="flex-1 bg-grey-50 overflow-auto">
-      <div className="p-8">
-        {/* Stats Section with StatCard */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <StatCard
-            title="Total Departments"
-            value={teachers.length.toString()}
-            icon={(props) => <Layers {...props} />}
-            color="cyan"
-          />
+    <div className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Courses Management</h1>
+          <p className="text-gray-500">Manage your platform courses</p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Course
+        </Button>
+      </div>
 
-          <StatCard
-            title="Total Courses"
-            value={courses.length.toString()}
-            icon={(props) => <BookOpen {...props} />}
-            color="orange"
-          />
-          <StatCard
-            title="Total Enrollements"
-            value={students.length.toString()}
-            icon={(props) => <Users {...props} />}
-            color="pink"
-          />
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="p-4 border-b border-gray-200">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search courses by title, teacher, or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
 
-        {/* Courses Table + Actions (left table, right aside) */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                      All Courses
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Comprehensive list of all courses offered.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
-                  >
-                    + Add Course
-                  </button>
-                </div>
-
-                {/* Search and Filter */}
-                <div className="flex gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search courses..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <select
-                      value={filterDepartment}
-                      onChange={(e) => setFilterDepartment(e.target.value)}
-                      className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm appearance-none bg-white"
-                    >
-                      <option value="all">All Departments</option>
-                      {departments
-                        .filter((d) => d !== "all")
-                        .map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">
-                        Course Code
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">
-                        Title
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">
-                        Department
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">
-                        Assigned Teacher
-                      </th>
-                      <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900 w-28">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredCourses.map((course) => (
-                      <tr key={course.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 table-text">{course.code}</td>
-                        <td className="px-4 py-2 table-text">{course.title}</td>
-                        <td className="px-4 py-2 table-text">
-                          {course.department ?? "-"}
-                        </td>
-                        <td className="px-4 py-2 table-text">
-                          {course.assignedTeacher ?? "-"}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-right">
-                          <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={() => handleEditCourse(course)}
-                              className="text-xs text-blue-600 hover:text-blue-800"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCourse(course.id)}
-                              className="text-xs text-red-600 hover:text-red-800"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {filteredCourses.length === 0 && (
-                <div className="px-6 py-12 text-center text-gray-500">
-                  No courses found matching your criteria.
-                </div>
-              )}
-
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  Showing {filteredCourses.length} of {courses.length} courses
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <aside className="w-full lg:w-80">
-            <AssignCourseToTeacher courses={courses} teachers={teachers} onAssign={handleAssignCourse} />
-          </aside>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Teacher</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Duration</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Price</th>
+                {/* <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Enrollments</th> */}
+                
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredCourses.map((course) => (
+                <tr key={course.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-xs">
+                    <div className="truncate">{course.title}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{getTeacherName(course.teacher_id)}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      {getCategoryName(course.category_id)}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{course.num_weeks} weeks</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{course.price?.toLocaleString()} DZD</td>
+                  {/* <td className="px-6 py-4 text-sm text-gray-500">{course.enrollments_count}</td> */}
+                  
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEdit(course)}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDelete(course)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Add New Course"
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const form = e.currentTarget as HTMLFormElement;
-            const formData = new FormData(form);
-            const courseData = {
-              code: String(formData.get("code") || ""),
-              title: String(formData.get("title") || ""),
-              department: String(
-                formData.get("department") || "Computer Science"
-              ),
-              assignedTeacher: String(formData.get("assignedTeacher") || ""),
-            } as NewCourse;
-            handleAddCourse(courseData);
-            setIsAddModalOpen(false);
-          }}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm mb-2">Course Title</label>
-            <input
-              name="title"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              required
-            />
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Course</DialogTitle>
+            <DialogDescription>
+              Create a new course for the platform. Fill in all the details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Course Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Complete Web Development Bootcamp"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="teacher">Teacher *</Label>
+                <Select value={formData.teacher_id} onValueChange={(value: string) => setFormData({ ...formData, teacher_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select value={formData.category_id} onValueChange={(value: string) => setFormData({ ...formData, category_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="overview">Overview</Label>
+              <Input
+                id="overview"
+                value={formData.overview}
+                onChange={(e) => setFormData({ ...formData, overview: e.target.value })}
+                placeholder="A brief one-line description of the course"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Detailed course description..."
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="weeks">Number of Weeks *</Label>
+                <Input
+                  id="weeks"
+                  type="number"
+                  min="1"
+                  value={formData.num_weeks}
+                  onChange={(e) => setFormData({ ...formData, num_weeks: e.target.value })}
+                  placeholder="12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="price">Price (DZD) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  placeholder="15000"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm mb-2">Course Code</label>
-            <input
-              name="code"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-2">Department</label>
-            <select
-              name="department"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            >
-              <option>Computer Science</option>
-              <option>Mathematics</option>
-              <option>Physics</option>
-              <option>Chemistry</option>
-              <option>Biology</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm mb-2">Assigned Teacher</label>
-            <input
-              name="assignedTeacher"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsAddModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm"
-            >
-              Add Course
-            </button>
+            </Button>
+            <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600">
+              Create Course
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Course</DialogTitle>
+            <DialogDescription>
+              Update the course information below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Course Title *</Label>
+              <Input
+                id="edit-title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-teacher">Teacher *</Label>
+                <Select value={formData.teacher_id} onValueChange={(value: string) => setFormData({ ...formData, teacher_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category *</Label>
+                <Select value={formData.category_id} onValueChange={(value: string) => setFormData({ ...formData, category_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-overview">Overview</Label>
+              <Input
+                id="edit-overview"
+                value={formData.overview}
+                onChange={(e) => setFormData({ ...formData, overview: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-weeks">Number of Weeks *</Label>
+                <Input
+                  id="edit-weeks"
+                  type="number"
+                  min="1"
+                  value={formData.num_weeks}
+                  onChange={(e) => setFormData({ ...formData, num_weeks: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-price">Price (DZD) *</Label>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  min="0"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                />
+              </div>
+            </div>
           </div>
-        </form>
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsEditOpen(false); setSelectedCourse(null); resetForm(); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleEdit} className="bg-blue-500 hover:bg-blue-600">
+              Update Course
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the course &quot;{selectedCourse?.title}&quot;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setIsDeleteOpen(false); setSelectedCourse(null); }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
