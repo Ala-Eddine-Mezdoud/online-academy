@@ -1,6 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 
 interface CourseCardProps {
+  id: string;
   image: string;
   category: string;
   title: string;
@@ -12,6 +14,7 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({
+  id,
   image,
   category,
   title,
@@ -22,8 +25,8 @@ export default function CourseCard({
   showInstructor = true,
 }: CourseCardProps) {
   return (
-    <article className="flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,0.0)] ring-1">
-      <div className="relative h-48 w-full overflow-hidden rounded-2xl">
+    <article className="flex h-full flex-col rounded-3xl bg-white p-6 border border-gray-700 justify-between">
+      <div className="relative h-48 w-full overflow-hidden rounded-2xl ">
         <Image
           src={image}
           alt={title}
@@ -32,7 +35,8 @@ export default function CourseCard({
           className="object-cover"
         />
       </div>
-      <div className="mt-5 flex flex-1 flex-col">
+
+      <div className="mt-5 flex flex-1 flex-col justify-between">
         <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
           {category}
         </span>
@@ -73,13 +77,11 @@ export default function CourseCard({
             <dd className="text-slate-600">{duration}</dd>
           </div>
         </dl>
-        <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-600">
-          {description}
-        </p>
+
         <button className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-          {buttonLabel}
+          <Link href={`/course/${id}`}>{buttonLabel}</Link>
         </button>
       </div>
-    </article>
+    </article >
   );
 }

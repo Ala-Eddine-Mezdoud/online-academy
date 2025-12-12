@@ -120,7 +120,7 @@ const faqs = [
 
 export default function CourseDetailPage() {
   return (
-    <div className="flex flex-col bg-white py-8 px-8 gap-14 md:px-24">
+    <div className="flex flex-col bg-white py-16 gap-14 container mx-auto ">
       <CourseHero
         title="Mastering React: From Beginner to Advanced Developer"
         description="Dive deep into the world of React, build complex applications, and master best practices. Learn hooks, context API, routing, and state management like a pro."
@@ -142,9 +142,6 @@ export default function CourseDetailPage() {
           <InstructorSpotlight {...instructor} />
         </div>
         <StudentReviews {...studentReviews} />
-      </div>
-      <div className="max-w-4xl self-center md:w-3/4">
-        <CourseFAQ items={faqs} />
       </div>
     </div>
   );

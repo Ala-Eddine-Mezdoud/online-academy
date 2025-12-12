@@ -4,7 +4,7 @@ import TeacherCard from "@/components/teacher/TeacherCard";
 
 const courses = [
   {
-    id: "web-dev-bootcamp",
+    id: "1",
     image: "/images/webdev-pic.jpg",
     category: "Web Development",
     title: "Full-Stack Web Development Bootcamp",
@@ -14,7 +14,7 @@ const courses = [
       "Master front-end and back-end skills with this intensive program covering React, Node.js, databases, and deployment best practices.",
   },
   {
-    id: "ui-ux-design",
+    id: "2",
     image: "/images/webdev-pic.jpg",
     category: "Product Design",
     title: "UI/UX Design Accelerator",
@@ -24,7 +24,7 @@ const courses = [
       "Build intuitive experiences through user research, wireframing, prototyping, and modern design systems using Figma.",
   },
   {
-    id: "ai-specialist",
+    id: "3",
     image: "/images/webdev-pic.jpg",
     category: "AI & Data",
     title: "Applied AI Specialist Program",
@@ -34,7 +34,7 @@ const courses = [
       "Learn to build intelligent products with Python, TensorFlow, and real-world ML pipelines focused on deployable outcomes.",
   },
   {
-    id: "product-management",
+    id: "4",
     image: "/images/webdev-pic.jpg",
     category: "Product",
     title: "Product Management Launchpad",
@@ -44,7 +44,7 @@ const courses = [
       "Go from idea to launch with practical frameworks for market research, roadmapping, stakeholder alignment, and go-to-market strategy.",
   },
   {
-    id: "data-analytics",
+    id: "5",
     image: "/images/webdev-pic.jpg",
     category: "Data Analytics",
     title: "Modern Data Analytics Intensive",
@@ -54,7 +54,7 @@ const courses = [
       "Analyze business data with SQL, Python, and Looker Studio while learning to craft dashboards and data stories executives care about.",
   },
   {
-    id: "mobile-dev",
+    id: "6",
     image: "/images/webdev-pic.jpg",
     category: "Mobile",
     title: "React Native App Mastery",
