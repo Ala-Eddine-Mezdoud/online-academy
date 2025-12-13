@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getAllCourses } from '@/app/lib/courses.client';
+import Link from 'next/link';
 
 
 export default function CoursesPage() {
@@ -57,9 +58,11 @@ export default function CoursesPage() {
               </div>
 
               <div className="p-4 border-t border-gray-200">
-                <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 ease-in-out">
-                  Teach Now!
-                </button>
+                <Link href={`/dashboard/teacher/courses/${course.id}`} className="block w-full">
+                  <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 ease-in-out">
+                    Teach Now!
+                  </button>
+                </Link>
               </div>
 
             </div>
