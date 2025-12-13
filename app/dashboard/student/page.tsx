@@ -28,12 +28,6 @@ export default function DashboardPage() {
     courses: 0,
     enrollments: 0
   });
-  const [trends, setTrends] = useState({
-    students: { value: 0, isPositive: true },
-    teachers: { value: 0, isPositive: true },
-    courses: { value: 0, isPositive: true },
-    enrollments: { value: 0, isPositive: true }
-  });
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [popularCourses, setPopularCourses] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<RegistrationData[]>([]);
@@ -69,37 +63,6 @@ export default function DashboardPage() {
           teachers: teachersData?.length || 0,
           courses: coursesData?.length || 0,
           enrollments: enrollmentsData?.length || 0
-        });
-
-        // Calculate trends (compare this month vs last month)
-        const now = new Date();
-        const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-
-        const calculateTrend = (data: any[], dateField: string) => {
-          const thisMonth = data?.filter((item: any) => {
-            const date = new Date(item[dateField]);
-            return date >= thisMonthStart;
-          }).length || 0;
-
-          const lastMonth = data?.filter((item: any) => {
-            const date = new Date(item[dateField]);
-            return date >= lastMonthStart && date <= lastMonthEnd;
-          }).length || 0;
-
-          if (lastMonth === 0) {
-            return { value: thisMonth > 0 ? 100 : 0, isPositive: true };
-          }
-          const change = Math.round(((thisMonth - lastMonth) / lastMonth) * 100);
-          return { value: Math.abs(change), isPositive: change >= 0 };
-        };
-
-        setTrends({
-          students: calculateTrend(studentsData || [], 'created_at'),
-          teachers: calculateTrend(teachersData || [], 'created_at'),
-          courses: calculateTrend(coursesData || [], 'created_at'),
-          enrollments: calculateTrend(enrollmentsData || [], 'enrolled_at')
         });
 
         setRecentStudents(studentsData?.slice(0, 5) || []);
@@ -245,25 +208,25 @@ export default function DashboardPage() {
           title="Total Students"
           value={stats.students}
           icon={Users}
-          trend={{ value: `${trends.students.value}% From last month`, isPositive: trends.students.isPositive }}
+          trend={{ value: 'From database', isPositive: true }}
         />
         <StatsCard
           title="Total Teachers"
           value={stats.teachers}
           icon={GraduationCap}
-          trend={{ value: `${trends.teachers.value}% From last month`, isPositive: trends.teachers.isPositive }}
+          trend={{ value: 'From database', isPositive: true }}
         />
         <StatsCard
           title="Total Courses"
           value={stats.courses}
           icon={BookOpen}
-          trend={{ value: `${trends.courses.value}% From last month`, isPositive: trends.courses.isPositive }}
+          trend={{ value: 'From database', isPositive: true }}
         />
         <StatsCard
           title="Total Enrollments"
           value={stats.enrollments}
           icon={TrendingUp}
-          trend={{ value: `${trends.enrollments.value}% From last month`, isPositive: trends.enrollments.isPositive }}
+          trend={{ value: 'From database', isPositive: true }}
         />
       </div>
 

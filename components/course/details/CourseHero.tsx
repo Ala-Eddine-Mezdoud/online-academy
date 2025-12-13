@@ -32,8 +32,10 @@ export function CourseHero({
             {description}
           </p>
         </div>
-        <div className="flex flex-wrap gap-4 text-sm font-medium text-slate-700">
-          <div className="inline-flex items-center gap-2 px-4 py-2">
+
+        {/*icons */}
+        <div className="flex justify-start flex-wrap gap-4 text-sm font-medium text-slate-700">
+          <div className="inline-flex items-center gap-2  py-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -69,6 +71,7 @@ export function CourseHero({
             {level}
           </span>
         </div>
+
         <div className="flex flex-wrap gap-4">
           <button className="w-48! px-12 cursor-pointer rounded-md bg-blue-500 py-3 text-sm font-semibold text-white transition hover:bg-blue-400">
             {primaryCta}
@@ -77,6 +80,7 @@ export function CourseHero({
             {secondaryCta}
           </button>
         </div>
+
       </div>
       <div className="relative h-64 w-full overflow-hidden rounded-3xl shadow-inner lg:h-[320px]">
         <Image

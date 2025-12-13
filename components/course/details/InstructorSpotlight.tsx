@@ -36,7 +36,6 @@ export function InstructorSpotlight({
         <div className="space-y-2 text-sm text-slate-600">
           <p className="text-xl font-semibold text-slate-900">{name}</p>
           <p className="font-medium text-blue-600">{title}</p>
-          <p className="leading-relaxed">{bio}</p>
           <button className="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-500">
             {linkLabel}
           </button>

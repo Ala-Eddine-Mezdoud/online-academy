@@ -1,25 +1,41 @@
 'use client';
 
 import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { useEffect, useState } from 'react';
+import { createBrowserSupabase } from '@/app/lib/supabase/supabase';
+import { getMyEnrollments } from '@/app/lib/enrollments.client';
+import { getCourseById } from '@/app/lib/courses.client';
 
-// Mock data for demo purposes (same approach as courses/teachers pages)
-const studentName = "Alex Johnson";
+// Student name (fetched from Supabase auth metadata)
+// Falls back to email or "Student" if not available
+function useStudentName() {
+  const [name, setName] = useState<string>('Student');
+  useEffect(() => {
+    let alive = true;
+    const supabase = createBrowserSupabase();
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const user = data?.user;
+        const displayName =
+          (user?.user_metadata as any)?.full_name ||
+          user?.email ||
+          'Student';
+        if (!alive) return;
+        setName(displayName);
+      } catch {
+        if (!alive) return;
+        setName('Student');
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+  return name;
+}
 
-const enrolledCourses = [
-  {
-    id: 1,
-    title: "Introduction to Web Development",
-    instructor: "by Jane Doe",
-    progress: 70,
-  },
-  {
-    id: 2,
-    title: "Advanced Data Analytics",
-    instructor: "by Michael Chen",
-    progress: 45,
-  },
-];
-
+type EnrolledCourse = { id: number; title: string; progress: number; instructor?: string };
 
 const notifications = [
   {
@@ -91,12 +107,73 @@ const quickActions = [
   },
 ];
 
-
-
 export default function StudentDashboard() {
+  const studentName = useStudentName();
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setCoursesLoading(true);
+        const enrollments = await getMyEnrollments();
+        if (!alive) return;
+        if (!enrollments || enrollments.length === 0) {
+          setEnrolledCourses([]);
+          setCoursesLoading(false);
+          return;
+        }
+        const courses = await Promise.all(
+          enrollments.map(async (e: any) => {
+            const c = await getCourseById(e.course_id as number);
+            let instructorName: string | undefined = undefined;
+            try {
+              const teacherId = (c as any)?.teacher_id as string | undefined;
+              if (teacherId) {
+                // Prefer full name from Auth via server API
+                const res = await fetch(`/api/teachers/${teacherId}`, { cache: 'no-store' });
+                if (res.ok) {
+                  const payload = await res.json();
+                  instructorName = payload?.fullName || undefined;
+                }
+                // Fallback to profiles role_title if API fails
+                if (!instructorName) {
+                  const supabase = createBrowserSupabase();
+                  const { data: t } = await supabase
+                    .from('profiles')
+                    .select('role_title')
+                    .eq('id', teacherId)
+                    .maybeSingle();
+                  instructorName = (t?.role_title as string) || undefined;
+                }
+              }
+            } catch {}
+            return {
+              id: c?.id as number,
+              title: c?.title ?? 'Untitled Course',
+              progress: e.progress ?? 0,
+              instructor:
+                instructorName ||
+                (c as any)?.instructor || (c as any)?.teacher_name || (c as any)?.teacher || undefined,
+            } as EnrolledCourse;
+          })
+        );
+        if (!alive) return;
+        setEnrolledCourses(courses);
+        setCoursesLoading(false);
+      } catch {
+        if (!alive) return;
+        setEnrolledCourses([]);
+        setCoursesLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
   return (
-    <div className="bg-slate-50 min-h-screen pt-20">
-      
+    <div className="bg-slate-50 min-h-screen">
+      <Navbar />
+      <div className="pt-20">
       {/* Welcome Section */}
       <section className="py-12 px-10 md:px-20">
         <div className="max-w-5xl mx-auto bg-gradient-to-b from-blue-50 to-white rounded-3xl shadow-lg p-10">
@@ -116,7 +193,7 @@ export default function StudentDashboard() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
-              3 Active Courses
+              Join More Courses
             </Link>
           </div>
         </div>
@@ -125,13 +202,33 @@ export default function StudentDashboard() {
       {/* Main Content */}
       <section className="py-12 px-10 md:px-20">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
-
           {/* Left Column - Recent Courses */}
           <div className="md:col-span-2">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-8">Your Recent Courses</h2>
               <div className="space-y-6">
-                {enrolledCourses.map((course) => (
+                {coursesLoading ? (
+                  <p className="text-slate-600"></p>
+                ) : enrolledCourses.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-10 text-center shadow-md">
+                    <div className="mb-4 w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">No courses yet</h3>
+                    <p className="text-sm text-slate-600 mb-6">Enroll in your first course to see it here.</p>
+                    <Link
+                      href="/course"
+                      className="inline-flex items-center gap-2 bg-blue-500 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-600 transition"
+                    >
+                      Explore Courses
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                ) : enrolledCourses.map((course: EnrolledCourse) => (
                   <div key={course.id} className="bg-white rounded-2xl overflow-hidden shadow-md">
                     {/* Course Image */}
                     <div className="w-full">
@@ -144,7 +241,11 @@ export default function StudentDashboard() {
                     {/* Course Details */}
                     <div className="p-8">
                       <h3 className="text-xl font-bold text-slate-900 mb-2">{course.title}</h3>
-                      <p className="text-sm text-slate-500 mb-6">By {course.instructor.replace('by ', '')}</p>
+                      {course.instructor && (
+                        <p className="text-sm text-slate-500 mb-6">
+                          Teacher: {String(course.instructor).replace('by ', '')}
+                        </p>
+                      )}
                       <div className="mb-4">
                         <div className="flex items-center justify-end text-sm mb-2">
                           <span className="font-semibold text-slate-900">{course.progress}%</span>
@@ -169,70 +270,30 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          {/* Right Column - Notifications & Quick Actions */}
-          <div className="space-y-10">
-            {/* Notifications */}
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-8">Notifications</h2>
-              <div className="bg-white rounded-2xl p-6 shadow-md space-y-5">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className="flex items-start gap-4 pb-5 border-b border-slate-100 last:border-0 last:pb-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                      notification.type === 'info' ? 'bg-blue-100' :
-                      notification.type === 'warning' ? 'bg-orange-100' :
-                      'bg-green-100'
-                    }`}>
-                      {notification.type === 'info' && (
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      )}
-                      {notification.type === 'warning' && (
-                        <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      )}
-                      {notification.type === 'success' && (
-                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-900 font-medium leading-relaxed mb-1">{notification.title}</p>
-                      <p className="text-xs text-slate-500">{notification.time}</p>
+          {/* Right Column - Quick Actions */}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">Quick Actions</h2>
+            <div className="bg-white rounded-2xl p-6 shadow-md space-y-2">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.id}
+                  href={action.link}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition group"
+                >
+                  <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition">
+                    <div className="text-slate-600 group-hover:text-blue-500 transition">
+                      {action.icon}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-8">Quick Actions</h2>
-              <div className="bg-white rounded-2xl p-6 shadow-md space-y-2">
-                {quickActions.map((action) => (
-                  <Link
-                    key={action.id}
-                    href={action.link}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition group"
-                  >
-                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition">
-                      <div className="text-slate-600 group-hover:text-blue-500 transition">
-                        {action.icon}
-                      </div>
-                    </div>
-                    <span className="text-sm font-medium text-slate-900">{action.title}</span>
-                  </Link>
-                ))}
-              </div>
+                  <span className="text-sm font-medium text-slate-900">{action.title}</span>
+                </Link>
+              ))}
             </div>
           </div>
-
         </div>
       </section>
-
-
+      </div>
+      <Footer />
     </div>
   );
 }
