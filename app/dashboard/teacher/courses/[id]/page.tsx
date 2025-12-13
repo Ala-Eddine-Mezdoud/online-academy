@@ -20,18 +20,11 @@ export default function CourseDetailsPage() {
             if (!id) return;
             try {
                 setLoading(true);
-                const [courseData, enrollmentsData] = await Promise.all([
+                const [courseData,] = await Promise.all([
                     getCourseById(id),
-                    getEnrollmentsWithStudentsByCourse(id)
                 ]);
                 setCourse(courseData);
-                // Extract profiles from enrollments
-                const studentsData = enrollmentsData?.map((enrollment: any) => ({
-                    ...enrollment.profiles,
-                    enrollment_date: enrollment.created_at,
-                    progress: enrollment.progress
-                })) || [];
-                setStudents(studentsData);
+
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
