@@ -112,7 +112,7 @@ export default function SignUpPage() {
       <AuthHeroSection
         title="Welcome to EduConnect"
         description="Sign up to discover more."
-        illustrationSrc="/signup-sketch.png"
+        illustrationSrc="/signup-sketch1.png"
         illustrationAlt="Teacher and student illustration"
         order="left"
       />

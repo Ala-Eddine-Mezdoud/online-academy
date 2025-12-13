@@ -201,7 +201,15 @@ export default function CoursesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredCourses.map((course) => (
+              {filteredCourses.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <Search className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No courses found</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredCourses.map((course) => (
                 <tr key={course.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-xs">
                     <div className="truncate">{course.title}</div>
@@ -237,7 +245,8 @@ export default function CoursesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>

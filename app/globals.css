@@ -5,17 +5,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-
-  /* EduConnect Color Tokens */
-  --primary: #19b7ff;
-  --primary-600: #0c86d8;
-  --neutral-100: #f7f9fb;
-  --neutral-200: #f2f3f5;
-  --neutral-500: #9aa2aa;
-  --neutral-700: #30363a;
-  --success: #10b981;
-  --error: #ef4444;
-  --border: rgba(16, 24, 40, 0.06);
 }
 
 @theme inline {
@@ -24,15 +13,6 @@
   --font-sans: var(--font-poppins);
   --font-body: var(--font-inter);
 
-  /* Custom color tokens */
-  --color-primary: var(--primary);
-  --color-primary-600: var(--primary-600);
-  --color-neutral-100: var(--neutral-100);
-  --color-neutral-200: var(--neutral-200);
-  --color-neutral-500: var(--neutral-500);
-  --color-neutral-700: var(--neutral-700);
-  --color-success: var(--success);
-  --color-error: var(--error);
 }
 
 @media (prefers-color-scheme: dark) {

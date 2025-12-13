@@ -21,7 +21,7 @@ export default function AuthPageLayout({
       <div className="w-full max-w-7xl flex-1 flex flex-col items-center justify-center">
         {mobileTitle}
         <div
-          className={`grid grid-cols-1 ${gridCols} gap-0 lg:gap-0 items-start w-full`}
+          className={`grid grid-cols-1 ${gridCols} gap-0 lg:gap-0 items-center w-full`}
         >
           {children}
         </div>
