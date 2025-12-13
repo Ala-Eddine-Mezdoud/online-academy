@@ -10,7 +10,6 @@ export function TeacherSidebar() {
   const menuItems = [
     { path: '/dashboard/teacher', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/dashboard/teacher/courses', label: 'Courses', icon: BookOpen },
-    { path: '/dashboard/teacher/students', label: 'Students', icon: Users },
   ];
 
   return (

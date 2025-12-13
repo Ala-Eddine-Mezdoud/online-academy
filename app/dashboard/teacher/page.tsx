@@ -17,18 +17,10 @@ import {
 import { getMyCourses } from '@/app/lib/courses.client';
 import { getAllEnrollments } from '@/app/lib/enrollments.client';
 import { getMyNotifications } from '@/app/lib/notifications.client';
-import CoursesManager from './_components/pages/CoursesManager';
-import StudentsManager from './_components/pages/StudentsManager';
-import ProfileManager from './_components/pages/ProfileManager';
-import RecentCourses from './_components/dashboard/RecentCourses';
-import NotificationsList from './_components/dashboard/NotificationsList';
 import StatsCard from './_components/dashboard/StatsCard';
 
-type Page = 'dashboard' | 'courses' | 'students' | 'profile';
 
 export default function TeacherDashboard() {
-    const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalStudents: 0,
@@ -37,19 +29,23 @@ export default function TeacherDashboard() {
         hoursTaught: 0,
     });
     const [recentCourses, setRecentCourses] = useState<any[]>([]);
-    const [notifications, setNotifications] = useState<any[]>([]);
 
-    useEffect(() => {
-        loadDashboardData();
-    }, []);
+
+
+
+    const teacherStats = [
+        { label: 'Total Students', value: stats.totalStudents.toString(), icon: Users, color: 'bg-blue-500', trend: '+12%' },
+        { label: 'Active Courses', value: stats.activeCourses.toString(), icon: BookOpen, color: 'bg-green-500', trend: '+2' },
+        { label: 'sessions Taught', value: stats.hoursTaught.toString(), icon: Clock, color: 'bg-purple-500', trend: '+3' },
+    ];
+
 
     const loadDashboardData = async () => {
         try {
             setLoading(true);
-            const [coursesData, enrollmentsData, notificationsData] = await Promise.all([
+            const [coursesData, enrollmentsData] = await Promise.all([
                 getMyCourses(),
                 getAllEnrollments(),
-                getMyNotifications(),
             ]);
 
             // Calculate stats
@@ -73,14 +69,7 @@ export default function TeacherDashboard() {
             }));
             setRecentCourses(formattedCourses);
 
-            // Format notifications
-            const formattedNotifications = (notificationsData || []).slice(0, 5).map((notif: any) => ({
-                id: notif.id,
-                text: notif.message || notif.title || 'New notification',
-                time: notif.created_at ? new Date(notif.created_at).toLocaleString() : 'Just now',
-                type: notif.is_read ? 'info' : 'success',
-            }));
-            setNotifications(formattedNotifications);
+
         } catch (error) {
             console.error('Failed to load dashboard data:', error);
         } finally {
@@ -88,64 +77,35 @@ export default function TeacherDashboard() {
         }
     };
 
-    const menuItems = [
-        { id: 'dashboard' as Page, label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'courses' as Page, label: 'Courses', icon: BookOpen },
-        { id: 'students' as Page, label: 'Students', icon: Users },
-        { id: 'profile' as Page, label: 'Profile', icon: User },
-    ];
-
-    const teacherStats = [
-        { label: 'Total Students', value: stats.totalStudents.toString(), icon: Users, color: 'bg-blue-500', trend: '+12%' },
-        { label: 'Active Courses', value: stats.activeCourses.toString(), icon: BookOpen, color: 'bg-green-500', trend: '+2' },
-        { label: 'Avg. Rating', value: stats.avgRating.toString(), icon: Award, color: 'bg-yellow-500', trend: '+0.3' },
-        { label: 'Hours Taught', value: stats.hoursTaught.toString(), icon: Clock, color: 'bg-purple-500', trend: '+24h' },
-    ];
+    useEffect(() => {
+        loadDashboardData();
+    }, []);
 
 
+    if (loading) return (
+        <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+    );
 
     return (
-        <div className="flex h-screen bg-gray-50">
+        <div className="p-8">
 
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto">
-                <header className="h-16 bg-white flex items-center justify-end px-8">
+            <div className='mb-8'>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+            </div>
 
 
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
-                            />
-                        </div>
-                    </div>
-                </header>
-
-                {/* Dashboard Content */}
-
-                <div className="p-8">
-
-                    {loading ? (
-                        <div className="flex items-center justify-center h-64">
-                            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                                {teacherStats.map((stat, index) => (
-                                    <StatsCard key={index} stat={stat} />
-                                ))}
-                            </div>
-                        </>
-                    )}
+            <div className="">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    {teacherStats.map((stat, index) => (
+                        <StatsCard key={index} stat={stat} />
+                    ))}
                 </div>
+            </div>
 
-
-            </main>
         </div>
     );
 }
