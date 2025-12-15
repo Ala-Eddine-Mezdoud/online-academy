@@ -11,12 +11,20 @@ interface FilterSelectProps {
   label: string;
   placeholder: string;
   options: FilterOption[];
+  value: string | null;
+  onChange: (value: string | null) => void;
 }
 
-function FilterSelect({ label, placeholder, options }: FilterSelectProps) {
+function FilterSelect({
+  label,
+  placeholder,
+  options,
+  value,
+  onChange,
+}: FilterSelectProps) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<FilterOption | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selected = options.find((option) => option.value === value) ?? null;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,7 +41,8 @@ function FilterSelect({ label, placeholder, options }: FilterSelectProps) {
   }, []);
 
   const handleSelect = (option: FilterOption) => {
-    setSelected(option);
+    const nextValue = option.value === selected?.value ? null : option.value;
+    onChange(nextValue);
     setOpen(false);
   };
 
@@ -112,25 +121,34 @@ function FilterSelect({ label, placeholder, options }: FilterSelectProps) {
   );
 }
 
-export default function CourseFilters() {
-  const categoryOptions: FilterOption[] = [
-    { value: "development", label: "Development" },
-    { value: "design", label: "Design" },
-    { value: "marketing", label: "Marketing" },
-  ];
+// export default function CourseFilters() {
+interface CourseFiltersProps {
+  search: string;
+  category: string | null;
+  instructor: string | null;
+  duration: string | null;
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (value: string | null) => void;
+  onInstructorChange: (value: string | null) => void;
+  onDurationChange: (value: string | null) => void;
+  categories: FilterOption[];
+  instructors: FilterOption[];
+  durations: FilterOption[];
+}
 
-  const instructorOptions: FilterOption[] = [
-    { value: "ahmed", label: "Ahmed" },
-    { value: "mohamed", label: "Mohamed" },
-    { value: "yassine", label: "Yassine" },
-  ];
-
-  const durationOptions: FilterOption[] = [
-    { value: "7-weeks", label: "7 weeks" },
-    { value: "8-weeks", label: "8 weeks" },
-    { value: "9-weeks", label: "9 weeks" },
-  ];
-
+export default function CourseFilters({
+  search,
+  category,
+  instructor,
+  duration,
+  onSearchChange,
+  onCategoryChange,
+  onInstructorChange,
+  onDurationChange,
+  categories,
+  instructors,
+  durations,
+}: CourseFiltersProps) {
   return (
     <div className="rounded-2xl bg-neutral-100 p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:flex-nowrap lg:items-start lg:gap-6">
@@ -151,6 +169,8 @@ export default function CourseFilters() {
           <input
             type="text"
             placeholder="Search courses..."
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
             className="w-full rounded-2xl border border-gray-200 bg-white/80 px-12 py-3 text-base text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -158,17 +178,23 @@ export default function CourseFilters() {
           <FilterSelect
             label="Category"
             placeholder="Select a category"
-            options={categoryOptions}
+            options={categories}
+            value={category}
+            onChange={onCategoryChange}
           />
           <FilterSelect
             label="Instructor"
             placeholder="Select instructor"
-            options={instructorOptions}
+            options={instructors}
+            value={instructor}
+            onChange={onInstructorChange}
           />
           <FilterSelect
             label="Duration"
             placeholder="Select duration"
-            options={durationOptions}
+            options={durations}
+            value={duration}
+            onChange={onDurationChange}
           />
         </div>
       </div>

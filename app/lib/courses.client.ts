@@ -9,6 +9,62 @@ export const getAllCourses = async () => {
   return data;
 };
 
+export async function getCoursesPageData() {
+
+  const { data, error } = await supabase
+    .from("courses")
+    .select(`
+      id,
+      title,
+      image,
+      overview,
+      description,
+      num_weeks,
+      price,
+      categories:category_id (
+        name
+      ),
+      teacher:teacher_id (
+        name      
+      )
+    `)
+
+  if (error) {
+    console.error("Supabase Error:", error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+export const getCoursesByTeacher = async (teacherId: string) => {
+  const { data, error } = await supabase
+    .from("courses")
+    .select(`
+      id,
+      title,
+      image,
+      overview,
+      description,
+      num_weeks,
+      price,
+      categories:category_id (
+        name
+      ),
+      teacher:teacher_id (
+        name      
+      )
+    `)
+    .eq("teacher_id", teacherId);
+
+  if (error) {
+    console.error("Supabase Error:", error);
+    throw error;
+  }
+
+  return data || [];
+};
+
 export const getCourseById = async (id: number) => {
   const { data, error } = await supabase.from('courses').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
