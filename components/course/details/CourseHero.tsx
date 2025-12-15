@@ -21,6 +21,12 @@ export function CourseHero({
   secondaryCta,
   image,
 }: CourseHeroProps) {
+  const handleViewSyllabus = () => {
+    const el = document.getElementById("course-syllabus");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
   return (
     <section className="grid gap-10 py-8  ring-slate-100 lg:grid-cols-[minmax(0,1fr)_500px] lg:items-center">
       <div className="space-y-6">
@@ -73,14 +79,20 @@ export function CourseHero({
         </div>
 
         <div className="flex flex-wrap gap-4">
-          <button className="w-48! px-12 cursor-pointer rounded-md bg-blue-500 py-3 text-sm font-semibold text-white transition hover:bg-blue-400">
+          <button
+            type="button"
+            className="w-48! px-12 cursor-pointer rounded-md bg-blue-500 py-3 text-sm font-semibold text-white transition hover:bg-blue-400"
+          >
             {primaryCta}
           </button>
-          <button className="w-48! px-12 cursor-pointer rounded-md border border-slate-200 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-600">
+          <button
+            type="button"
+            onClick={handleViewSyllabus}
+            className="w-48! px-12 cursor-pointer rounded-md border border-slate-200 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-600"
+          >
             {secondaryCta}
           </button>
         </div>
-
       </div>
       <div className="relative h-64 w-full overflow-hidden rounded-3xl shadow-inner lg:h-[320px]">
         <Image
