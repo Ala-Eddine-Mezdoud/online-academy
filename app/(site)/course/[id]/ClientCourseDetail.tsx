@@ -191,13 +191,13 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
     syllabusModules.length
       ? syllabusModules
       : [
-          {
-            title: "Syllabus coming soon",
-            lessons: [
-              "We are curating the detailed breakdown for this course.",
-            ],
-          },
-        ]
+        {
+          title: "Syllabus coming soon",
+          lessons: [
+            "We are curating the detailed breakdown for this course.",
+          ],
+        },
+      ]
   ).map((module) => ({
     title: module.title,
     lessons: module.lessons.length
@@ -208,17 +208,17 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
   const faqToDisplay = faqItems.length
     ? faqItems
     : [
-        {
-          question: "Need course specifics?",
-          answer:
-            "The teaching team is updating the FAQ for this course. Please check back soon.",
-        },
-      ];
+      {
+        question: "Need course specifics?",
+        answer:
+          "The teaching team is updating the FAQ for this course. Please check back soon.",
+      },
+    ];
 
   const reviewCount = reviews.length;
   const averageRating = reviewCount
     ? reviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) /
-      reviewCount
+    reviewCount
     : 0;
   const ratingSummary = `${averageRating.toFixed(1)} out of 5`;
 
@@ -259,32 +259,39 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
   };
 
   return (
-    <div className="flex flex-col gap-14 bg-white px-6 py-8 md:px-24">
-      <CourseHero
-        title={course.title}
-        description={courseDescription}
-        duration={durationLabel}
-        students={studentsLabel}
-        level={levelLabel}
-        primaryCta="Enroll Now"
-        secondaryCta="View Syllabus"
-        image={heroImage}
-      />
-      <CourseOverview title="Overview" content={overviewContent} />
-      <CourseLearnings lessons={lessonsToDisplay} />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_1fr]">
-        <div className="flex flex-col gap-6">
-          <CourseSyllabus modules={modulesToDisplay} />
-          <InstructorSpotlight {...instructorProps} />
-        </div>
-        <StudentReviews
-          ratingSummary={ratingSummary}
-          reviewCount={reviewCount}
-          reviews={reviewEntries}
+    <div className="flex flex-col gap-14 py-8 ">
+      <div className="container mx-auto ">
+
+
+        <CourseHero
+          title={course.title}
+          description={courseDescription}
+          duration={durationLabel}
+          students={studentsLabel}
+          level={levelLabel}
+          primaryCta="Enroll Now"
+          secondaryCta="View Syllabus"
+          image={heroImage}
         />
-      </div>
-      <div className="max-w-4xl self-center md:w-3/4">
-        <CourseFAQ items={faqToDisplay} />
+        <CourseOverview title="Overview" content={overviewContent} />
+        <CourseLearnings lessons={lessonsToDisplay} />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_1fr]">
+          <div className="flex flex-col gap-6">
+            <CourseSyllabus modules={modulesToDisplay} />
+            <InstructorSpotlight {...instructorProps} />
+          </div>
+          <StudentReviews
+            ratingSummary={ratingSummary}
+            reviewCount={reviewCount}
+            reviews={reviewEntries}
+          />
+        </div>
+        <div className="max-w-4xl self-center md:w-3/4">
+          <CourseFAQ items={faqToDisplay} />
+        </div>
+
+
+
       </div>
     </div>
   );

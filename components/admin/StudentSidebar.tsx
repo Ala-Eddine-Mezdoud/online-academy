@@ -4,21 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, GraduationCap, BookOpen, UserCheck, LogOut } from 'lucide-react';
 
-export function AdminSidebar() {
+export function StudentSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { path: '/dashboard/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/dashboard/admin/students', label: 'Students', icon: Users },
-    { path: '/dashboard/admin/teachers', label: 'Teachers', icon: GraduationCap },
-    { path: '/dashboard/admin/courses', label: 'Courses', icon: BookOpen },
-    { path: '/dashboard/admin/enrollments', label: 'Enrollments', icon: UserCheck },
+    { path: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/dashboard/student/courses', label: 'Courses', icon: BookOpen },
   ];
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-blue-500">Admin</h1>
+        <h1 className="text-2xl font-bold text-blue-500">Student</h1>
       </div>
 
       <nav className="flex-1 p-4">
