@@ -95,5 +95,9 @@ export function CourseSyllabus({ modules }: CourseSyllabusProps) {
     ),
   }));
 
-  return <AccordionSection title="Course Syllabus" items={items} />;
+  return (
+    <div id="course-syllabus">
+      <AccordionSection title="Course Syllabus" items={items} />
+    </div>
+  );
 }
