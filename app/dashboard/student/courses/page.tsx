@@ -88,6 +88,10 @@ export default function CoursesPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Courses Management</h1>
           <p className="text-gray-500">Manage your platform courses</p>
         </div>
+        <div className=' text-black flex items-center gap-2'>
+          <div className='h-4 w-4 bg-red-500 rounded-full'></div>
+          <h1>Notifications</h1>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200">
@@ -116,24 +120,24 @@ export default function CoursesPage() {
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        {getCategoryName(course.category_id)}
                       </Badge>
-                      <span className="text-sm font-medium text-gray-500">{course.num_weeks} weeks</span>
                     </div>
-                    
+
                     <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
                       {course.title}
                     </h3>
-                    
+
                     <p className="text-sm text-gray-600 mb-6">
                       Instructor: <span className="font-medium text-gray-900">{getTeacherName(course.teacher_id)}</span>
                     </p>
 
                     <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
                       <div className="text-xl font-bold text-gray-900">
-                        {course.price?.toLocaleString()} <span className="text-xs font-normal text-gray-500 uppercase">DZD</span>
                       </div>
-                      <Button variant="outline" size="sm">View Course</Button>
+                      <Button variant="outline" size="sm">
+                        Join Now
+                        <div className="z-10 h-4 w-4 bg-green-500 rounded-full"></div>
+                      </Button>
                     </div>
                   </div>
                 </div>
