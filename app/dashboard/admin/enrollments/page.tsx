@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
 import { Badge } from '@/components/admin/ui/badge';
 import { Progress } from '@/components/admin/ui/progress';
-import { getAllEnrollments, enroll, unenroll, updateEnrollmentProgress } from '@/app/lib/enrollments.client';
+import { getAllEnrollments, adminEnroll, deleteEnrollment, updateEnrollmentProgress } from '@/app/lib/enrollments.client';
 import { getAllCourses } from '@/app/lib/courses.client';
 import { getAllProfiles } from '@/app/lib/profiles.client';
 
@@ -56,13 +56,7 @@ export default function EnrollmentsPage() {
   }, []);
 
   const filteredEnrollments = enrollments.filter(enrollment => {
-    // Note: getAllEnrollments joins courses and profiles.
-    // enrollment.courses.title, enrollment.profiles.role_title (if we used role_title for name)
-    // The join in enrollments.client.ts was:
-    // select('*, courses(title), profiles(email, role)')
-    // So we have enrollment.courses.title and enrollment.profiles.email
-    
-    const studentName = enrollment.profiles?.email || 'Unknown'; // Using email as name proxy if name missing
+    const studentName = enrollment.profiles?.name || enrollment.profiles?.email || 'Unknown';
     const courseTitle = enrollment.courses?.title || 'Unknown';
     
     const matchesSearch = 
@@ -87,23 +81,13 @@ export default function EnrollmentsPage() {
 
   const handleCreate = async () => {
     try {
-      await enroll(Number(formData.course_id));
-      // Enroll function uses `auth.getUser()` which is the CURRENT admin user.
-      // This is WRONG for admin panel. Admin wants to enroll OTHER students.
-      // `enroll` function in `enrollments.client.ts` takes `courseId` and uses `auth.user.id`.
-      // I need a function `adminEnroll(courseId, studentId)`.
-      // `enrollments.client.ts` does not have it.
-      // I need to add it.
-      // For now, I can't enroll others.
-      // I will skip implementation of Create for now or add the function.
-      // I should add `adminEnroll` to `enrollments.client.ts`.
-      // Let's assume I will add it.
-      // await adminEnroll(Number(formData.course_id), formData.student_id);
-      console.warn('Admin enrollment not implemented yet');
+      await adminEnroll(Number(formData.course_id), formData.student_id);
+      await fetchData();
       setIsCreateOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating enrollment:', error);
+      alert(`Failed to create enrollment: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -115,25 +99,22 @@ export default function EnrollmentsPage() {
       setIsEditOpen(false);
       setSelectedEnrollment(null);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating enrollment:', error);
+      alert(`Failed to update enrollment: ${error.message || 'Unknown error'}`);
     }
   };
 
   const handleDelete = async () => {
     if (!selectedEnrollment) return;
     try {
-      // unenroll also uses auth.user.id.
-      // I need `adminUnenroll(id)`.
-      // `enrollments` table has `id`. I can just delete by `id`.
-      // `unenroll` in client uses `delete().eq('course_id', ...).eq('student_id', ...)`.
-      // I should add `deleteEnrollment(id)` to client.
-      // For now, I'll skip or assume I added it.
-      console.warn('Admin unenroll not implemented yet');
+      await deleteEnrollment(selectedEnrollment.id);
+      await fetchData();
       setIsDeleteOpen(false);
       setSelectedEnrollment(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting enrollment:', error);
+      alert(`Failed to delete enrollment: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -179,11 +160,10 @@ export default function EnrollmentsPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Enrollments Management</h1>
           <p className="text-gray-500">Manage student course enrollments</p>
         </div>
-        {/* Disable Add Enrollment for now as we lack adminEnroll */}
-        {/* <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
+        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
           <Plus className="w-4 h-4 mr-2" />
           Add Enrollment
-        </Button> */}
+        </Button>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200">
@@ -246,7 +226,7 @@ export default function EnrollmentsPage() {
               {filteredEnrollments.map((enrollment) => (
                 <tr key={enrollment.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {enrollment.profiles?.email || 'Unknown'}
+                    {enrollment.profiles?.name || enrollment.profiles?.email || 'Unknown'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
                     <div className="truncate">{enrollment.courses?.title || 'Unknown'}</div>
@@ -275,15 +255,14 @@ export default function EnrollmentsPage() {
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                      {/* Disable Delete for now */}
-                      {/* <Button
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => openDelete(enrollment)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </Button> */}
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -292,6 +271,62 @@ export default function EnrollmentsPage() {
           </table>
         </div>
       </div>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Enrollment</DialogTitle>
+            <DialogDescription>
+              Enroll a student in a course.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="student">Student *</Label>
+              <Select value={formData.student_id} onValueChange={(value) => setFormData({ ...formData, student_id: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a student" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.name || student.email || 'Unknown'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="course">Course *</Label>
+              <Select value={formData.course_id} onValueChange={(value) => setFormData({ ...formData, course_id: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={String(course.id)}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreate} 
+              className="bg-blue-500 hover:bg-blue-600"
+              disabled={!formData.student_id || !formData.course_id}
+            >
+              Create Enrollment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
@@ -325,6 +360,26 @@ export default function EnrollmentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the enrollment for &quot;{selectedEnrollment?.profiles?.name || 'Unknown'}&quot; from &quot;{selectedEnrollment?.courses?.title || 'Unknown'}&quot;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setIsDeleteOpen(false); setSelectedEnrollment(null); }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -89,3 +89,80 @@ export async function checkAdminConfig() {
     missingKey: !key
   };
 }
+
+export async function adminEnrollAction(courseId: number, studentId: string) {
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
+    // Check for existing enrollment
+    const { data: existing } = await supabaseAdmin
+      .from('enrollments')
+      .select('*')
+      .eq('course_id', courseId)
+      .eq('student_id', studentId)
+      .maybeSingle();
+    
+    if (existing) {
+      return { success: true, data: existing, message: 'Already enrolled' };
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('enrollments')
+      .insert({ course_id: courseId, student_id: studentId, progress: 0 })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating enrollment:', error);
+      throw new Error(error.message);
+    }
+    
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function adminDeleteEnrollmentAction(enrollmentId: number) {
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
+    const { data, error } = await supabaseAdmin
+      .from('enrollments')
+      .delete()
+      .eq('id', enrollmentId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error deleting enrollment:', error);
+      throw new Error(error.message);
+    }
+    
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function adminUpdateEnrollmentAction(enrollmentId: number, progress: number) {
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
+    const { data, error } = await supabaseAdmin
+      .from('enrollments')
+      .update({ progress })
+      .eq('id', enrollmentId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating enrollment:', error);
+      throw new Error(error.message);
+    }
+    
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}

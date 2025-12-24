@@ -61,7 +61,7 @@ export default function CoursesPage() {
     // Note: We might need to join teacher/category names if they are not in the course object
     // Assuming course object has teacher_id and category_id, we might need to lookup names
     // For now, let's just filter by title
-    teachers.find(t => t.id === course.teacher_id)?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    teachers.find(t => t.id === course.teacher_id)?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     categories.find(c => c.id === course.category_id)?.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -150,7 +150,7 @@ export default function CoursesPage() {
 
   const getTeacherName = (id: string) => {
     const teacher = teachers.find(t => t.id === id);
-    return teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Unknown';
+    return teacher ? teacher.name : 'Unknown';
   };
 
   const getCategoryName = (id: number) => {
@@ -384,7 +384,7 @@ export default function CoursesPage() {
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>

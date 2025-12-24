@@ -36,6 +36,7 @@ export default function DashboardPage() {
   });
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [popularCourses, setPopularCourses] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<RegistrationData[]>([]);
   const [enrollmentData, setEnrollmentData] = useState<EnrollmentData[]>([]);
   const [averageProgress, setAverageProgress] = useState(0);
@@ -70,6 +71,9 @@ export default function DashboardPage() {
           courses: coursesData?.length || 0,
           enrollments: enrollmentsData?.length || 0
         });
+
+        // Store teachers for lookup
+        setTeachers(teachersData || []);
 
         // Calculate trends (compare this month vs last month)
         const now = new Date();
@@ -462,12 +466,11 @@ export default function DashboardPage() {
             {recentStudents.map((student) => (
               <div key={student.id} className="flex items-center justify-between py-2">
                 <div>
-                  <p className="font-medium text-gray-900">{student.role_title || 'Unknown Name'}</p>
+                  <p className="font-medium text-gray-900">{student.name || 'Unknown Name'}</p>
                   <p className="text-sm text-gray-500">{student.wilaya || 'No location'}</p>
                 </div>
                 <span className="text-sm text-gray-500">
-                  {/* We don't have enrollment count per student easily available without more queries, skipping for now */}
-                  Student
+                  {student.email || 'Student'}
                 </span>
               </div>
             ))}
@@ -477,17 +480,20 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Popular Courses</h3>
           <div className="space-y-4">
-            {popularCourses.map((course) => (
-              <div key={course.id} className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-gray-900">{course.title}</p>
-                  <p className="text-sm text-gray-500">ID: {course.id}</p>
+            {popularCourses.map((course) => {
+              const teacher = teachers.find(t => t.id === course.teacher_id);
+              return (
+                <div key={course.id} className="flex items-center justify-between py-2">
+                  <div>
+                    <p className="font-medium text-gray-900">{course.title}</p>
+                    <p className="text-sm text-gray-500">By: {teacher?.name || 'Unknown Teacher'}</p>
+                  </div>
+                  <span className="text-sm text-blue-600">
+                    {course.enrollments_count} students
+                  </span>
                 </div>
-                <span className="text-sm text-blue-600">
-                  {course.enrollments_count} students
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

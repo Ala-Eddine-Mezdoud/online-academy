@@ -18,6 +18,7 @@ export default function LiveSessionsPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -54,11 +55,31 @@ export default function LiveSessionsPage() {
     fetchData();
   }, []);
 
-  const filteredSessions = sessions.filter(session =>
-    session.session_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    courses.find(c => c.id === session.course_id)?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teachers.find(t => t.id === session.teacher_id)?.first_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getSessionStatus = (startTime: string, endTime: string) => {
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (now < start) {
+      return { label: 'Upcoming', variant: 'outline' as const, className: 'bg-blue-50 text-blue-700 border-blue-200' };
+    } else if (now >= start && now <= end) {
+      return { label: 'Live', variant: 'outline' as const, className: 'bg-green-50 text-green-700 border-green-200' };
+    } else {
+      return { label: 'Ended', variant: 'outline' as const, className: 'bg-gray-50 text-gray-700 border-gray-200' };
+    }
+  };
+
+  const filteredSessions = sessions.filter(session => {
+    const matchesSearch = 
+      session.session_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      courses.find(c => c.id === session.course_id)?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      teachers.find(t => t.id === session.teacher_id)?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (statusFilter === 'all') return matchesSearch;
+    
+    const status = getSessionStatus(session.start_time, session.end_time).label.toLowerCase();
+    return matchesSearch && status === statusFilter;
+  });
 
   const handleCreate = async () => {
     try {
@@ -146,7 +167,7 @@ export default function LiveSessionsPage() {
 
   const getTeacherName = (id: string) => {
     const teacher = teachers.find(t => t.id === id);
-    return teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Unknown';
+    return teacher ? teacher.name : 'Unknown';
   };
 
   const formatDateTime = (dateString: string) => {
@@ -162,20 +183,6 @@ export default function LiveSessionsPage() {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toISOString().slice(0, 16);
-  };
-
-  const getSessionStatus = (startTime: string, endTime: string) => {
-    const now = new Date();
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-
-    if (now < start) {
-      return { label: 'Upcoming', variant: 'outline' as const, className: 'bg-blue-50 text-blue-700 border-blue-200' };
-    } else if (now >= start && now <= end) {
-      return { label: 'Live', variant: 'outline' as const, className: 'bg-green-50 text-green-700 border-green-200' };
-    } else {
-      return { label: 'Ended', variant: 'outline' as const, className: 'bg-gray-50 text-gray-700 border-gray-200' };
-    }
   };
 
   if (loading) return <div className="p-8">Loading live sessions...</div>;
@@ -195,14 +202,27 @@ export default function LiveSessionsPage() {
 
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search sessions by title, course, or teacher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search sessions by title, course, or teacher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="live">Live</SelectItem>
+                <SelectItem value="ended">Ended</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -337,7 +357,7 @@ export default function LiveSessionsPage() {
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -433,7 +453,7 @@ export default function LiveSessionsPage() {
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>

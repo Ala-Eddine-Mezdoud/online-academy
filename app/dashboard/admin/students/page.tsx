@@ -46,15 +46,15 @@ export default function StudentsPage() {
 
   const filteredStudents = students.filter(student =>
     student.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.role_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.wilaya?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreate = async () => {
     try {
       const result = await createUser(formData.email, 'student', {
-        role_title: `${formData.first_name} ${formData.last_name}`,
-        description: `Email: ${formData.email}`,
+        name: `${formData.first_name} ${formData.last_name}`,
+        email: formData.email,
         phone_number: formData.phone_number,
         wilaya: formData.wilaya,
       });
@@ -76,8 +76,8 @@ export default function StudentsPage() {
     if (!selectedStudent) return;
     try {
       await updateProfile(selectedStudent.id, {
-        role_title: `${formData.first_name} ${formData.last_name}`,
-        description: `Email: ${formData.email}`,
+        name: `${formData.first_name} ${formData.last_name}`,
+        email: formData.email,
         phone_number: formData.phone_number,
         wilaya: formData.wilaya,
       });
@@ -104,11 +104,11 @@ export default function StudentsPage() {
 
   const openEdit = (student: any) => {
     setSelectedStudent(student);
-    const [first, ...last] = (student.role_title || '').split(' ');
+    const [first, ...last] = (student.name || '').split(' ');
     setFormData({
       first_name: first || '',
       last_name: last.join(' ') || '',
-      email: student.description?.replace('Email: ', '') || '',
+      email: student.email || '',
       phone_number: student.phone_number || '',
       wilaya: student.wilaya || '',
     });
@@ -157,7 +157,7 @@ export default function StudentsPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email (Desc)</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Phone</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Wilaya</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
@@ -167,10 +167,10 @@ export default function StudentsPage() {
               {filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {student.role_title || 'Unknown'}
+                    {student.name || 'Unknown'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {student.description?.includes('Email:') ? student.description.replace('Email: ', '') : '-'}
+                    {student.email || '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{student.phone_number || '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{student.wilaya || '-'}</td>
@@ -232,7 +232,7 @@ export default function StudentsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email (Stored in Description) *</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -306,7 +306,7 @@ export default function StudentsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email (Stored in Description) *</Label>
+              <Label htmlFor="edit-email">Email *</Label>
               <Input
                 id="edit-email"
                 type="email"
@@ -355,7 +355,7 @@ export default function StudentsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the student profile &quot;{selectedStudent?.role_title}&quot;. This action cannot be undone.
+              This will permanently delete the student profile &quot;{selectedStudent?.name}&quot;. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

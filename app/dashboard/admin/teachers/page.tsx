@@ -48,6 +48,7 @@ export default function TeachersPage() {
   }, []);
 
   const filteredTeachers = teachers.filter(teacher =>
+    teacher.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.role_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.wilaya?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -56,8 +57,9 @@ export default function TeachersPage() {
   const handleCreate = async () => {
     try {
       const result = await createUser(formData.email, 'teacher', {
-        role_title: `${formData.first_name} ${formData.last_name}`,
-        description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
+        name: `${formData.first_name} ${formData.last_name}`,
+        role_title: formData.role_title,
+        description: formData.description,
         phone_number: formData.phone_number,
         wilaya: formData.wilaya,
       });
@@ -78,8 +80,10 @@ export default function TeachersPage() {
     if (!selectedTeacher) return;
     try {
       await updateProfile(selectedTeacher.id, {
-        role_title: `${formData.first_name} ${formData.last_name}`,
-        description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
+        name: `${formData.first_name} ${formData.last_name}`,
+        email: formData.email,
+        role_title: formData.role_title,
+        description: formData.description,
         phone_number: formData.phone_number,
         wilaya: formData.wilaya,
       });
@@ -106,20 +110,16 @@ export default function TeachersPage() {
 
   const openEdit = (teacher: any) => {
     setSelectedTeacher(teacher);
-    const [first, ...last] = (teacher.role_title || '').split(' ');
-    
-    // Parse description
-    const descLines = (teacher.description || '').split('\n');
-    const emailLine = descLines.find((l: string) => l.startsWith('Email: '));
-    const titleLine = descLines.find((l: string) => l.startsWith('Title: '));
-    const bioLine = descLines.find((l: string) => l.startsWith('Bio: '));
+    const nameParts = (teacher.name || '').split(' ');
+    const first = nameParts[0] || '';
+    const last = nameParts.slice(1).join(' ') || '';
     
     setFormData({
-      first_name: first || '',
-      last_name: last.join(' ') || '',
-      email: emailLine?.replace('Email: ', '') || '',
-      role_title: titleLine?.replace('Title: ', '') || '',
-      description: bioLine?.replace('Bio: ', '') || teacher.description || '',
+      first_name: first,
+      last_name: last,
+      email: teacher.email || '',
+      role_title: teacher.role_title || '',
+      description: teacher.description || '',
       phone_number: teacher.phone_number || '',
       wilaya: teacher.wilaya || '',
     });
@@ -168,51 +168,45 @@ export default function TeachersPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email (Desc)</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title (Desc)</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Phone</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Wilaya</th>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredTeachers.map((teacher) => {
-                const descLines = (teacher.description || '').split('\n');
-                const email = descLines.find((l: string) => l.startsWith('Email: '))?.replace('Email: ', '') || '-';
-                const title = descLines.find((l: string) => l.startsWith('Title: '))?.replace('Title: ', '') || '-';
-                
-                return (
-                  <tr key={teacher.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {teacher.role_title || 'Unknown'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{title}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.phone_number || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.wilaya || '-'}</td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEdit(teacher)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDelete(teacher)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filteredTeachers.map((teacher) => (
+                <tr key={teacher.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {teacher.name || 'Unknown'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{teacher.email || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{teacher.role_title || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{teacher.phone_number || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{teacher.wilaya || '-'}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEdit(teacher)}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDelete(teacher)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -408,7 +402,7 @@ export default function TeachersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the teacher &quot;{selectedTeacher?.role_title}&quot;. This action cannot be undone.
+              This will permanently delete the teacher &quot;{selectedTeacher?.name}&quot;. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
