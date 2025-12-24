@@ -31,7 +31,11 @@ export function AccordionSection({
       </div>
       <div className={`mt-6 divide-y border-neutral-300 text-neutral-300`}>
         {items.map((item, index) => (
-          <details key={item.title} className="group py-4" open={index === 0}>
+          <details
+            key={`${item.title}-${index}`}
+            className="group py-4"
+            open={index === 0}
+          >
             <summary className="flex cursor-pointer items-center justify-between text-base font-semibold text-slate-900">
               <span>
                 {item.title}
@@ -71,14 +75,14 @@ interface CourseSyllabusProps {
 }
 
 export function CourseSyllabus({ modules }: CourseSyllabusProps) {
-  const items: AccordionItem[] = modules.map((module) => ({
-    title: `${module.title} `,
+  const items: AccordionItem[] = modules.map((module, moduleIndex) => ({
+    title: module.title,
     subtitle: `(${module.lessons.length} Lessons)`,
     content: (
       <ul className="space-y-2">
-        {module.lessons.map((lesson) => (
+        {module.lessons.map((lesson, lessonIndex) => (
           <li
-            key={lesson}
+            key={`${lesson}-${lessonIndex}-${moduleIndex}`}
             className="flex items-center gap-3 rounded-2xl  px-4 py-2"
           >
             <Image

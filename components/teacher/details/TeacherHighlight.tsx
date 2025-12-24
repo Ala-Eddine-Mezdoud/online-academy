@@ -13,6 +13,8 @@ export function TeacherHighlight({
   bio,
   image,
 }: TeacherHighlightProps) {
+  const isDicebear =
+    typeof image === "string" && image.includes("api.dicebear.com");
   return (
     <section className="grid gap-4 bg-white px-6 py-10  ring-slate-100 md:grid-cols-[220px_1fr] md:items-center">
       <div className="relative mx-auto h-40 w-40 overflow-hidden rounded-full md:mx-0">
@@ -22,6 +24,7 @@ export function TeacherHighlight({
           fill
           sizes="160px"
           className="object-cover"
+          unoptimized={isDicebear}
         />
       </div>
       <div className="space-y-4">

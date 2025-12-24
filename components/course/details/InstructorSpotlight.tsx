@@ -31,6 +31,7 @@ export function InstructorSpotlight({
             fill
             sizes="96px"
             className="object-cover"
+            unoptimized
           />
         </div>
         <div className="space-y-2 text-sm text-slate-600">
