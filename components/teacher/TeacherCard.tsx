@@ -1,6 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 
 interface TeacherCardProps {
+  id?: string;
   image: string;
   name: string;
   title: string;
@@ -18,6 +20,7 @@ const ICONS = {
 };
 
 export default function TeacherCard({
+  id,
   image,
   name,
   title,
@@ -97,19 +100,37 @@ export default function TeacherCard({
         </div>
 
         <div className=" pt-6 mt-4">
-          <button className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-blue-500 hover:text-blue-600">
-            View Courses
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="h-4 w-4"
-            >
-              <path d="m10 7 5 5-5 5" />
-            </svg>
-          </button>
+          {id ? (
+            <Link href={`/teacher/${id}`} className="inline-block w-full">
+              <button className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-blue-500 hover:text-blue-600">
+                View Courses
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-4 w-4"
+                >
+                  <path d="m10 7 5 5-5 5" />
+                </svg>
+              </button>
+            </Link>
+          ) : (
+            <button className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-blue-500 hover:text-blue-600">
+              View Courses
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-4 w-4"
+              >
+                <path d="m10 7 5 5-5 5" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </article>

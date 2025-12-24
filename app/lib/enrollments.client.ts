@@ -59,3 +59,20 @@ export const updateEnrollmentProgress = async (id: number, progress: number) => 
   if (error) throw error;
   return data;
 };
+
+export const getEnrollmentsWithStudentsByCourse = async (courseId: number) => {
+  const { data, error } = await supabase
+    .from('enrollments')
+    .select(`
+      *,
+      profiles:student_id (
+        email,
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq('course_id', courseId);
+    
+  if (error) throw error;
+  return data;
+};

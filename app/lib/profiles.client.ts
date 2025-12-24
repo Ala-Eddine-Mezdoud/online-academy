@@ -13,6 +13,13 @@ export const getMyProfile = async () => {
   return data;
 };
 
+export const getProfileById = async (id: string) => {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data;
+};
+
+
 export const getAllProfiles = async (role?: string) => {
   let query = supabase.from('profiles').select('*');
   if (role) {
