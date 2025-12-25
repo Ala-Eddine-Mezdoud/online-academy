@@ -68,7 +68,7 @@ export default function SignUpPage() {
           password: data.password,
           options: {
             data: {
-              full_name: data.fullName,
+              name: data.fullName,
               role: roleForDb,
               phone: data.phone?.length ? data.phone : null,
               wilaya: data.wilaya,
