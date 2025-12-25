@@ -16,7 +16,6 @@ import AuthFormFooter from "@/components/authentication/shared/AuthFormFooter";
 import AuthMessages from "@/components/authentication/shared/AuthMessages";
 import SignupForm from "@/components/authentication/forms/SignupForm";
 import AuthPageLayout from "@/components/authentication/shared/AuthPageLayout";
-import RoleTabs from "@/components/authentication/RoleTabs";
 import { createBrowserSupabase } from "@/app/lib/supabase/supabase";
 
 type Role = "Student" | "Teacher" | "Admin";
@@ -29,7 +28,7 @@ export default function SignUpPage() {
     "weak" | "fair" | "strong"
   >("weak");
   const [isSuccess, setIsSuccess] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role>("Student");
+
   const supabase = useMemo(() => createBrowserSupabase(), []);
 
   const {
@@ -56,10 +55,7 @@ export default function SignUpPage() {
     setIsLoading(true);
     setServerError(null);
     setIsSuccess(false);
-    const roleForDb = selectedRole.toLowerCase() as
-      | "student"
-      | "teacher"
-      | "admin";
+    const roleForDb: "student" | "teacher" | "admin" = "student";
 
     try {
       const { data: signUpResponse, error: authError } =
@@ -118,7 +114,7 @@ export default function SignUpPage() {
       />
 
       <AuthFormCard order="right">
-        <RoleTabs selectedRole={selectedRole} onRoleChange={setSelectedRole} />
+        {/* Role selection removed — new signups default to student */}
 
         <AuthFormHeader
           title="Create Your EduConnect Account"
