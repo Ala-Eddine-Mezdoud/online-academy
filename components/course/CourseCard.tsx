@@ -24,6 +24,8 @@ export default function CourseCard({
   buttonLabel = "Enrol Now",
   showInstructor = true,
 }: CourseCardProps) {
+  const isRemote = typeof image === "string" && /^https?:\/\//.test(image);
+  const isSvg = typeof image === "string" && image.includes(".svg");
   return (
     <article className="flex h-full flex-col rounded-3xl bg-white p-6 border border-gray-700 justify-between">
       <div className="relative h-48 w-full overflow-hidden rounded-2xl ">
@@ -33,6 +35,7 @@ export default function CourseCard({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
           className="object-cover"
+          unoptimized={isRemote}
         />
       </div>
 
@@ -82,6 +85,6 @@ export default function CourseCard({
           <Link href={`/course/${id}`}>{buttonLabel}</Link>
         </button>
       </div>
-    </article >
+    </article>
   );
 }
