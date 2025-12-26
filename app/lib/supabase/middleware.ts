@@ -48,7 +48,7 @@ export default async function updateSession(request: NextRequest) {
   const isProtected = PROTECTED_ROUTES.some((path) => pathname.startsWith(path));
   const isAuth = AUTH_ROUTES.some((path) => pathname.startsWith(path));
   const isAdmin = ADMIN_ROUTES.some((path) => pathname.startsWith(path));
-
+  return response;
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
