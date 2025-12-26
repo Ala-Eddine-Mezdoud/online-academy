@@ -10,7 +10,8 @@ import { Label } from '@/components/admin/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
 import { getAllProfiles, createProfile, updateProfile, deleteProfile } from '@/app/lib/profiles.client';
-import { createUser } from '@/app/lib/actions';
+import { createUser, adminCreateTeacherLinks, adminUpdateTeacherLinks } from '@/app/lib/actions';
+import { getLinksByTeacher } from '@/app/lib/teacher_links.client';
 import { wilayas } from '@/lib/mockData';
 
 export default function TeachersPage() {
@@ -25,11 +26,24 @@ export default function TeachersPage() {
     first_name: '',
     last_name: '',
     email: '',
+    password: '',
     phone_number: '',
     wilaya: '',
     role_title: '',
     description: '',
   });
+  const [links, setLinks] = useState<{ id?: number; platform: string; url: string }[]>([]);
+
+  const platformOptions = [
+    'LinkedIn',
+    'Twitter',
+    'GitHub',
+    'YouTube',
+    'Facebook',
+    'Instagram',
+    'Website',
+    'Other'
+  ];
 
   const fetchTeachers = async () => {
     try {
@@ -62,10 +76,15 @@ export default function TeachersPage() {
         description: formData.description,
         phone_number: formData.phone_number,
         wilaya: formData.wilaya,
-      });
+      }, formData.password);
 
       if (!result.success) {
         throw new Error(result.error);
+      }
+
+      // Create teacher links if any
+      if (links.length > 0 && result.userId) {
+        await adminCreateTeacherLinks(result.userId, links);
       }
 
       await fetchTeachers();
@@ -87,6 +106,10 @@ export default function TeachersPage() {
         phone_number: formData.phone_number,
         wilaya: formData.wilaya,
       });
+
+      // Update teacher links
+      await adminUpdateTeacherLinks(selectedTeacher.id, links);
+
       await fetchTeachers();
       setIsEditOpen(false);
       setSelectedTeacher(null);
@@ -108,7 +131,7 @@ export default function TeachersPage() {
     }
   };
 
-  const openEdit = (teacher: any) => {
+  const openEdit = async (teacher: any) => {
     setSelectedTeacher(teacher);
     const nameParts = (teacher.name || '').split(' ');
     const first = nameParts[0] || '';
@@ -118,11 +141,22 @@ export default function TeachersPage() {
       first_name: first,
       last_name: last,
       email: teacher.email || '',
+      password: '',
       role_title: teacher.role_title || '',
       description: teacher.description || '',
       phone_number: teacher.phone_number || '',
       wilaya: teacher.wilaya || '',
     });
+
+    // Fetch existing links
+    try {
+      const teacherLinks = await getLinksByTeacher(teacher.id);
+      setLinks(teacherLinks?.map(l => ({ id: l.id, platform: l.platform || '', url: l.url || '' })) || []);
+    } catch (error) {
+      console.error('Error fetching teacher links:', error);
+      setLinks([]);
+    }
+
     setIsEditOpen(true);
   };
 
@@ -132,7 +166,8 @@ export default function TeachersPage() {
   };
 
   const resetForm = () => {
-    setFormData({ first_name: '', last_name: '', email: '', phone_number: '', wilaya: '', role_title: '', description: '' });
+    setFormData({ first_name: '', last_name: '', email: '', password: '', phone_number: '', wilaya: '', role_title: '', description: '' });
+    setLinks([]);
   };
 
   if (loading) return <div className="p-8">Loading teachers...</div>;
@@ -144,7 +179,7 @@ export default function TeachersPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Teachers Management</h1>
           <p className="text-gray-500">Manage your platform teachers</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
+        <Button onClick={() => { resetForm(); setIsCreateOpen(true); }} className="bg-blue-500 hover:bg-blue-600">
           <Plus className="w-4 h-4 mr-2" />
           Add Teacher
         </Button>
@@ -218,7 +253,7 @@ export default function TeachersPage() {
           <DialogHeader>
             <DialogTitle>Add New Teacher</DialogTitle>
             <DialogDescription>
-              Add a new teacher to the platform. Note: This does not create a login account.
+              Add a new teacher to the platform. You'll provide the email and password that the teacher will use to log in.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -250,6 +285,16 @@ export default function TeachersPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="teacher@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="Enter password for teacher"
               />
             </div>
             <div className="space-y-2">
@@ -294,6 +339,70 @@ export default function TeachersPage() {
                 placeholder="Brief bio about the teacher"
                 rows={3}
               />
+            </div>
+
+            {/* Teacher Links Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Social Links</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLinks([...links, { platform: '', url: '' }])}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Link
+                </Button>
+              </div>
+              {links.map((link, index) => (
+                <div key={index} className="flex gap-2 items-start">
+                  <Select
+                    value={link.platform}
+                    onValueChange={(value) => {
+                      const newLinks = [...links];
+                      newLinks[index].platform = value;
+                      setLinks(newLinks);
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {platformOptions.map((platform) => (
+                        <SelectItem key={platform} value={platform}>
+                          {platform}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="https://..."
+                    value={link.url}
+                    onChange={(e) => {
+                      const newLinks = [...links];
+                      newLinks[index].url = e.target.value;
+                      setLinks(newLinks);
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newLinks = links.filter((_, i) => i !== index);
+                      setLinks(newLinks);
+                    }}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {links.length === 0 && (
+                <p className="text-sm text-gray-500">No social links added yet.</p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -383,6 +492,70 @@ export default function TeachersPage() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
               />
+            </div>
+
+            {/* Teacher Links Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Social Links</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLinks([...links, { platform: '', url: '' }])}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Link
+                </Button>
+              </div>
+              {links.map((link, index) => (
+                <div key={index} className="flex gap-2 items-start">
+                  <Select
+                    value={link.platform}
+                    onValueChange={(value) => {
+                      const newLinks = [...links];
+                      newLinks[index].platform = value;
+                      setLinks(newLinks);
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {platformOptions.map((platform) => (
+                        <SelectItem key={platform} value={platform}>
+                          {platform}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="https://..."
+                    value={link.url}
+                    onChange={(e) => {
+                      const newLinks = [...links];
+                      newLinks[index].url = e.target.value;
+                      setLinks(newLinks);
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newLinks = links.filter((_, i) => i !== index);
+                      setLinks(newLinks);
+                    }}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {links.length === 0 && (
+                <p className="text-sm text-gray-500">No social links added yet.</p>
+              )}
             </div>
           </div>
           <DialogFooter>

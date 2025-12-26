@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
 import { Badge } from '@/components/admin/ui/badge';
 import { Progress } from '@/components/admin/ui/progress';
-import { getAllEnrollments, adminEnroll, deleteEnrollment, updateEnrollmentProgress } from '@/app/lib/enrollments.client';
+import { getAllEnrollments, deleteEnrollment, updateEnrollmentProgress } from '@/app/lib/enrollments.client';
 import { getAllCourses } from '@/app/lib/courses.client';
 import { getAllProfiles } from '@/app/lib/profiles.client';
+import { adminEnrollAction } from '@/app/lib/actions';
 
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
@@ -81,7 +82,10 @@ export default function EnrollmentsPage() {
 
   const handleCreate = async () => {
     try {
-      await adminEnroll(Number(formData.course_id), formData.student_id);
+      const result = await adminEnrollAction(Number(formData.course_id), formData.student_id);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       await fetchData();
       setIsCreateOpen(false);
       resetForm();
