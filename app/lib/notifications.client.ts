@@ -32,3 +32,34 @@ export const deleteNotification = async (id: number) => {
   if (error) throw error;
   return data;
 };
+
+// Notify all students enrolled in a course about a live session start
+export const notifyCourseLiveSession = async (
+  courseId: number,
+  sessionTitle: string,
+  sessionLink: string
+) => {
+  // fetch enrollments for course
+  const { data: enrollments, error: enrErr } = await supabase
+    .from('enrollments')
+    .select('student_id')
+    .eq('course_id', courseId)
+    .is('deleted_at', null);
+  if (enrErr) throw enrErr;
+  const recipients = (enrollments || []).map((e: any) => e.student_id).filter(Boolean);
+  if (recipients.length === 0) return [];
+
+  const payloads = recipients.map((userId: string) => ({
+    user_id: userId,
+    title: sessionTitle || 'Live session started',
+    message: `A live session has started. Join: ${sessionLink}`,
+    is_read: false,
+  }));
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert(payloads)
+    .select();
+  if (error) throw error;
+  return data;
+};

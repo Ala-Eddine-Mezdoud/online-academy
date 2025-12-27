@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAllCourses } from '@/app/lib/courses.client';
+import { getMyCourses } from '@/app/lib/courses.client';
 import Link from 'next/link';
 
 
@@ -15,7 +15,7 @@ export default function CoursesPage() {
     try {
       setLoading(true);
       const [coursesData] = await Promise.all([
-        getAllCourses(),
+        getMyCourses(),
       ]);
       setCourses(coursesData || []);
     } catch (error) {

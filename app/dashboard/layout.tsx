@@ -1,4 +1,5 @@
 import { Poppins, Inter } from "next/font/google";
+import { QueryProvider } from "@/app/providers/QueryProvider";
 import "../globals.css";
 
 const poppins = Poppins({
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-inter">
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

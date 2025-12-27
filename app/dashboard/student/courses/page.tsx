@@ -10,14 +10,12 @@ import { Label } from '@/components/admin/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
 import { Badge } from '@/components/admin/ui/badge';
-import { getAllCourses, createCourse, updateCourse, deleteCourse } from '@/app/lib/courses.client';
-import { getAllProfiles } from '@/app/lib/profiles.client';
-import { getAllCategories } from '@/app/lib/categories.client';
+import { getMyEnrolledCourses, createCourse, updateCourse, deleteCourse } from '@/app/lib/courses.client';
+import { useActiveLiveSessions } from '@/app/lib/queries/useLiveSessions';
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  // teachers/categories removed; use nested values from course objects
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -34,17 +32,15 @@ export default function CoursesPage() {
     price: '',
   });
 
+  // Active live sessions for courses the current student is enrolled in
+  const { data: activeSessions = [], isLoading: sessionsLoading } = useActiveLiveSessions();
+  // Notifications removed per request
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [coursesData, teachersData, categoriesData] = await Promise.all([
-        getAllCourses(),
-        getAllProfiles('teacher'),
-        getAllCategories()
-      ]);
+      const coursesData = await getMyEnrolledCourses();
       setCourses(coursesData || []);
-      setTeachers(teachersData || []);
-      setCategories(categoriesData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -56,27 +52,24 @@ export default function CoursesPage() {
     fetchData();
   }, []);
 
-  const filteredCourses = courses.filter(course =>
-    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    // Note: We might need to join teacher/category names if they are not in the course object
-    // Assuming course object has teacher_id and category_id, we might need to lookup names
-    // For now, let's just filter by title
-    teachers.find(t => t.id === course.teacher_id)?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    categories.find(c => c.id === course.category_id)?.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCourses = courses.filter((course: any) => {
+    const q = searchQuery.toLowerCase();
+    const title = (course.title || '').toLowerCase();
+    const teacher = (course.teacher?.name || '').toLowerCase();
+    const category = (course.categories?.name || '').toLowerCase();
+    return title.includes(q) || teacher.includes(q) || category.includes(q);
+  });
 
 
 
 
 
-  const getTeacherName = (id: string) => {
-    const teacher = teachers.find(t => t.id === id);
-    return teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Unknown';
+  const getTeacherName = (course: any) => {
+    return course?.teacher?.name || 'Unknown';
   };
 
-  const getCategoryName = (id: number) => {
-    const category = categories.find(c => c.id === id);
-    return category ? category.name : 'Unknown';
+  const getCategoryName = (course: any) => {
+    return course?.categories?.name || 'Unknown';
   };
 
   if (loading) return <div className="p-8">Loading courses...</div>;
@@ -88,11 +81,10 @@ export default function CoursesPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Courses Management</h1>
           <p className="text-gray-500">Manage your platform courses</p>
         </div>
-        <div className=' text-black flex items-center gap-2'>
-          <div className='h-4 w-4 bg-red-500 rounded-full'></div>
-          <h1>Notifications</h1>
-        </div>
+        {/* Notifications UI removed */}
       </div>
+
+      {/* Notifications list removed */}
 
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-4 border-b border-gray-200">
@@ -128,16 +120,30 @@ export default function CoursesPage() {
                     </h3>
 
                     <p className="text-sm text-gray-600 mb-6">
-                      Instructor: <span className="font-medium text-gray-900">{getTeacherName(course.teacher_id)}</span>
+                      Teacher: <span className="font-medium text-gray-900">{getTeacherName(course)}</span>
                     </p>
 
                     <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
                       <div className="text-xl font-bold text-gray-900">
                       </div>
-                      <Button variant="outline" size="sm">
-                        Join Now
-                        <div className="z-10 h-4 w-4 bg-green-500 rounded-full"></div>
-                      </Button>
+                      {/* Join session button if a live session is active for this course */}
+                      {(() => {
+                        const session = activeSessions.find((s: any) => s.course_id === course.id);
+                        if (session) {
+                          return (
+                            <a
+                              href={session.session_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 bg-green-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold hover:bg-green-600 transition"
+                            >
+                              <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
+                              Join Session
+                            </a>
+                          );
+                        }
+                        return <span className="text-xs text-slate-500">No live session</span>;
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -146,6 +152,8 @@ export default function CoursesPage() {
           )}
         </div>
       </div>
+
+      {/* Notification dialog removed */}
 
 
 
