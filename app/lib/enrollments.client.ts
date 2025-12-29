@@ -104,7 +104,7 @@ export const getEnrollmentsWithStudentsByCourse = async (courseId: number) => {
       *,
       profiles:student_id (
         email,
-        full_name,
+        name,
         avatar_url
       )
     `)

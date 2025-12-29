@@ -30,6 +30,8 @@ export default function TeacherCard({
   linkedin = "#",
   twitter = "#",
 }: TeacherCardProps) {
+  const isDicebear =
+    typeof image === "string" && image.includes("api.dicebear.com");
   return (
     <article className="flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_15px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
       <div className="relative h-56 w-full overflow-hidden rounded-2xl">
@@ -40,6 +42,7 @@ export default function TeacherCard({
           priority={false}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 360px"
           className="object-cover"
+          unoptimized={isDicebear}
         />
       </div>
       <div className="mt-5 flex flex-1 flex-col">

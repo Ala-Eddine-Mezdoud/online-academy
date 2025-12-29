@@ -95,14 +95,21 @@ export function CourseHero({
         </div>
       </div>
       <div className="relative h-64 w-full overflow-hidden rounded-3xl shadow-inner lg:h-[320px]">
-        <Image
-          src={image}
-          alt="Course preview"
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 420px"
-          className="object-cover"
-        />
+        {(() => {
+          const isRemote =
+            typeof image === "string" && /^https?:\/\//.test(image);
+          return (
+            <Image
+              src={image}
+              alt="Course preview"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 420px"
+              className="object-cover"
+              unoptimized={isRemote}
+            />
+          );
+        })()}
       </div>
     </section>
   );

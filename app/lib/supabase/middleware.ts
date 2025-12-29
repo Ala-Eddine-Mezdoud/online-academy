@@ -44,12 +44,11 @@ export default async function updateSession(request: NextRequest) {
   
   // login the user to check for errors in JWT validation
   // as of now everything is working fine
-  console.log(user);
 
   const isProtected = PROTECTED_ROUTES.some((path) => pathname.startsWith(path));
   const isAuth = AUTH_ROUTES.some((path) => pathname.startsWith(path));
   const isAdmin = ADMIN_ROUTES.some((path) => pathname.startsWith(path));
-
+  return response;
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -62,9 +61,8 @@ export default async function updateSession(request: NextRequest) {
   //   return NextResponse.redirect(url);
   // }
 
-  if( isAdmin && user?.user_metadata.role != 'admin'){
-    console.log("admin");
-    return NextResponse.rewrite(new URL('/404', request.url));
+  if (isAdmin && user?.user_metadata.role != "admin") {
+    return NextResponse.rewrite(new URL("/404", request.url));
   }
 
   return response;

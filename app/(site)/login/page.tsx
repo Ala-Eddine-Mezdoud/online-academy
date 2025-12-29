@@ -15,14 +15,12 @@ import AuthFormHeader from "@/components/authentication/shared/AuthFormHeader";
 import AuthFormFooter from "@/components/authentication/shared/AuthFormFooter";
 import AuthMessages from "@/components/authentication/shared/AuthMessages";
 import LoginForm from "@/components/authentication/forms/LoginForm";
-import RoleTabs from "@/components/authentication/RoleTabs";
-import { createBrowserSupabase } from "@/app/lib/supabase/supabase";
 
-type Role = "Student" | "Teacher" | "Admin";
+import { createBrowserSupabase } from "@/app/lib/supabase/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<Role>("Student");
+
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -59,31 +57,8 @@ export default function LoginPage() {
         throw new Error("Unable to sign in. Please try again.");
       }
 
-      // Verify the user's role matches the selected role
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", signInResponse.user.id)
-        .single();
-
-      if (profileError || !profile) {
-        console.log("Profile error:", profileError);
-        throw new Error("Unable to verify your account. Please try again.");
-      }
-
-      const userRole = profile.role.toLowerCase();
-      const expectedRole = selectedRole.toLowerCase();
-
-      if (userRole !== expectedRole) {
-        // Sign out since role doesn't match
-        await supabase.auth.signOut();
-        throw new Error(
-          `This account is registered as a ${profile.role}. Please select the correct role.`
-        );
-      }
-
+      // Role selection removed — proceed with normal login flow
       setIsSuccess(true);
-      console.log("success");
       // setTimeout(() => router.push("/dashboard"), 1500);
     } catch (error) {
       setServerError(
@@ -105,14 +80,9 @@ export default function LoginPage() {
         />
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-0 lg:gap-0 items-center w-full h-full">
           <AuthFormCard order="left">
-            <RoleTabs
-              selectedRole={selectedRole}
-              onRoleChange={setSelectedRole}
-            />
-
             <AuthFormHeader
               title="Welcome Back!"
-              description={`Log in to access your personalized learning journey as a ${selectedRole}.`}
+              description={`Log in to access your personalized learning journey.`}
             />
 
             <AuthMessages

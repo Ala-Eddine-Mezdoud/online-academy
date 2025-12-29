@@ -191,13 +191,13 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
     syllabusModules.length
       ? syllabusModules
       : [
-        {
-          title: "Syllabus coming soon",
-          lessons: [
-            "We are curating the detailed breakdown for this course.",
-          ],
-        },
-      ]
+          {
+            title: "Syllabus coming soon",
+            lessons: [
+              "We are curating the detailed breakdown for this course.",
+            ],
+          },
+        ]
   ).map((module) => ({
     title: module.title,
     lessons: module.lessons.length
@@ -208,17 +208,17 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
   const faqToDisplay = faqItems.length
     ? faqItems
     : [
-      {
-        question: "Need course specifics?",
-        answer:
-          "The teaching team is updating the FAQ for this course. Please check back soon.",
-      },
-    ];
+        {
+          question: "Need course specifics?",
+          answer:
+            "The teaching team is updating the FAQ for this course. Please check back soon.",
+        },
+      ];
 
   const reviewCount = reviews.length;
   const averageRating = reviewCount
     ? reviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) /
-    reviewCount
+      reviewCount
     : 0;
   const ratingSummary = `${averageRating.toFixed(1)} out of 5`;
 
@@ -259,10 +259,8 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
   };
 
   return (
-    <div className="flex flex-col gap-14 py-8 ">
-      <div className="container mx-auto ">
-
-
+    <div className=" py-8 ">
+      <div className="container mx-auto flex flex-col gap-14 ">
         <CourseHero
           title={course.title}
           description={courseDescription}
@@ -289,9 +287,6 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
         <div className="max-w-4xl self-center md:w-3/4">
           <CourseFAQ items={faqToDisplay} />
         </div>
-
-
-
       </div>
     </div>
   );
