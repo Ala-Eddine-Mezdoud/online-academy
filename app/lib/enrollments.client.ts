@@ -46,7 +46,9 @@ export const getAllEnrollments = async () => {
       title,
       teacher_id
     ),
-    profiles (
+    profiles:student_id (
+      name,
+      email,
       role
     )
   `);
@@ -56,6 +58,41 @@ export const getAllEnrollments = async () => {
 
 export const updateEnrollmentProgress = async (id: number, progress: number) => {
   const { data, error } = await supabase.from('enrollments').update({ progress }).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+};
+
+// Admin function to enroll any student in a course
+export const adminEnroll = async (courseId: number, studentId: string) => {
+  // Check for existing enrollment
+  const { data: existing } = await supabase
+    .from('enrollments')
+    .select('*')
+    .eq('course_id', courseId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+  
+  if (existing) return existing;
+  
+  const { data, error } = await supabase
+    .from('enrollments')
+    .insert({ course_id: courseId, student_id: studentId, progress: 0 })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+};
+
+// Admin function to delete an enrollment by ID
+export const deleteEnrollment = async (id: number) => {
+  const { data, error } = await supabase
+    .from('enrollments')
+    .delete()
+    .eq('id', id)
+    .select()
+    .single();
+  
   if (error) throw error;
   return data;
 };

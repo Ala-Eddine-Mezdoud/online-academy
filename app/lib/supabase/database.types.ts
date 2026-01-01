@@ -401,6 +401,8 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id: string
+          name?: string | null
+          email?: string | null
           phone_number?: string | null
           profile_image?: string | null
           role: string
@@ -413,6 +415,8 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
+          name?: string | null
+          email?: string | null
           phone_number?: string | null
           profile_image?: string | null
           role?: string

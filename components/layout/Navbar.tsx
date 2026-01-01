@@ -1,17 +1,71 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { createBrowserSupabase } from '@/app/lib/supabase/supabase';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const pathname = usePathname();
     const isHomePage = pathname === '/';
     const isCoursePage = pathname.startsWith('/course');
     const isTeacherPage = pathname.startsWith('/teacher');
     const isAboutPage = pathname === '/about';
     const isContactPage = pathname === '/contact';
+    
+    const supabase = createBrowserSupabase();
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+            
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                setUserRole(profile?.role || null);
+            }
+            setLoading(false);
+        };
+
+        checkUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            setUser(session?.user || null);
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                setUserRole(profile?.role || null);
+            } else {
+                setUserRole(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const getDashboardPath = () => {
+        switch (userRole) {
+            case 'admin':
+                return '/dashboard/admin';
+            case 'teacher':
+                return '/dashboard/teacher';
+            case 'student':
+                return '/dashboard/student';
+            default:
+                return '/dashboard';
+        }
+    };
 
     return (
         <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
@@ -76,37 +130,60 @@ export default function Navbar() {
                     </div>
 
                     <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-                        {/* Log In */}
-                        <a
-                            href="/login"
-                            className="w-[73px] h-[40px] px-3 flex items-center justify-center
-                                        font-['Open Sans'] text-[14px] leading-[22px] font-medium
-                                        text-blue-600
-                                        bg-transparent
-                                        rounded-[6px]
-                                        border-[1.5px] border-blue-600
-                                        transition-all duration-200
-                                        hover:-translate-y-1
-                                        hover:bg-blue-50"
-                        >
-                            Log In
-                        </a>
+                        {!loading && (
+                            <>
+                                {user ? (
+                                    <a
+                                        href={getDashboardPath()}
+                                        className="h-[40px] px-4 flex items-center justify-center
+                                                    font-['Open Sans'] text-[14px] leading-[22px] font-medium
+                                                    text-white
+                                                    bg-gradient-to-r from-blue-600 to-[#0C86D8]
+                                                    rounded-[6px]
+                                                    border-none
+                                                    transition-all duration-200
+                                                    hover:-translate-y-1
+                                                    hover:from-blue-700 hover:to-[#0C86D8]"
+                                    >
+                                        Dashboard
+                                    </a>
+                                ) : (
+                                    <>
+                                        {/* Log In */}
+                                        <a
+                                            href="/login"
+                                            className="w-[73px] h-[40px] px-3 flex items-center justify-center
+                                                        font-['Open Sans'] text-[14px] leading-[22px] font-medium
+                                                        text-blue-600
+                                                        bg-transparent
+                                                        rounded-[6px]
+                                                        border-[1.5px] border-blue-600
+                                                        transition-all duration-200
+                                                        hover:-translate-y-1
+                                                        hover:bg-blue-50"
+                                        >
+                                            Log In
+                                        </a>
 
-                        {/* Sign Up */}
-                        <a
-                            href="/signup"
-                            className="w-[83px] h-[40px] px-3 flex items-center justify-center
-                                        font-['Open Sans'] text-[14px] leading-[22px] font-medium
-                                        text-white
-                                        bg-gradient-to-r from-blue-600 to-[#0C86D8]
-                                        rounded-[6px]
-                                        border-none
-                                        transition-all duration-200
-                                        hover:-translate-y-1
-                                        hover:from-blue-700 hover:to-[#0C86D8]"
-                        >
-                            Sign Up
-                        </a>
+                                        {/* Sign Up */}
+                                        <a
+                                            href="/signup"
+                                            className="w-[83px] h-[40px] px-3 flex items-center justify-center
+                                                        font-['Open Sans'] text-[14px] leading-[22px] font-medium
+                                                        text-white
+                                                        bg-gradient-to-r from-blue-600 to-[#0C86D8]
+                                                        rounded-[6px]
+                                                        border-none
+                                                        transition-all duration-200
+                                                        hover:-translate-y-1
+                                                        hover:from-blue-700 hover:to-[#0C86D8]"
+                                        >
+                                            Sign Up
+                                        </a>
+                                    </>
+                                )}
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile menu button */}
@@ -175,29 +252,50 @@ export default function Navbar() {
 
                         {/* Mobile Buttons */}
                         <div className="px-4 pt-4 pb-6 space-y-3">
-                            <a
-                                href="/login"
-                                className="w-full h-[40px] px-3 flex items-center justify-center
-                                   font-['Open Sans'] text-[14px] font-medium
-                                   text-blue-600 bg-transparent
-                                   border-[1.5px] border-blue-600 rounded-[6px]
-                                   transition-all duration-200
-                                   hover:bg-blue-50"
-                            >
-                                Log In
-                            </a>
-                            <a
-                                href="/signup"
-                                className="w-full h-[40px] px-3 flex items-center justify-center
-                                   font-['Open Sans'] text-[14px] font-medium
-                                   text-white
-                                   bg-gradient-to-r from-blue-600 to-[#0C86D8]
-                                   rounded-[6px]
-                                   transition-all duration-200
-                                   hover:from-blue-700 hover:to-[#0C86D8]"
-                            >
-                                Sign Up
-                            </a>
+                            {!loading && (
+                                <>
+                                    {user ? (
+                                        <a
+                                            href={getDashboardPath()}
+                                            className="w-full h-[40px] px-3 flex items-center justify-center
+                                               font-['Open Sans'] text-[14px] font-medium
+                                               text-white
+                                               bg-gradient-to-r from-blue-600 to-[#0C86D8]
+                                               rounded-[6px]
+                                               transition-all duration-200
+                                               hover:from-blue-700 hover:to-[#0C86D8]"
+                                        >
+                                            Dashboard
+                                        </a>
+                                    ) : (
+                                        <>
+                                            <a
+                                                href="/login"
+                                                className="w-full h-[40px] px-3 flex items-center justify-center
+                                                   font-['Open Sans'] text-[14px] font-medium
+                                                   text-blue-600 bg-transparent
+                                                   border-[1.5px] border-blue-600 rounded-[6px]
+                                                   transition-all duration-200
+                                                   hover:bg-blue-50"
+                                            >
+                                                Log In
+                                            </a>
+                                            <a
+                                                href="/signup"
+                                                className="w-full h-[40px] px-3 flex items-center justify-center
+                                                   font-['Open Sans'] text-[14px] font-medium
+                                                   text-white
+                                                   bg-gradient-to-r from-blue-600 to-[#0C86D8]
+                                                   rounded-[6px]
+                                                   transition-all duration-200
+                                                   hover:from-blue-700 hover:to-[#0C86D8]"
+                                            >
+                                                Sign Up
+                                            </a>
+                                        </>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

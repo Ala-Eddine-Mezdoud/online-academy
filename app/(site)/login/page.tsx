@@ -57,9 +57,28 @@ export default function LoginPage() {
         throw new Error("Unable to sign in. Please try again.");
       }
 
-      // Role selection removed — proceed with normal login flow
+      // Fetch user profile to get role for redirection
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", signInResponse.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error("Unable to fetch user profile. Please try again.");
+      }
+
       setIsSuccess(true);
-      // setTimeout(() => router.push("/dashboard"), 1500);
+
+      // Redirect based on user role
+      const roleRoutes: Record<string, string> = {
+        admin: "/dashboard/admin",
+        teacher: "/dashboard/teacher",
+        student: "/dashboard/student",
+      };
+
+      const redirectPath = roleRoutes[profile.role] || "/dashboard";
+      setTimeout(() => router.push(redirectPath), 1500);
     } catch (error) {
       setServerError(
         error instanceof Error
