@@ -80,7 +80,6 @@ export const getMyCourses = async () => {
   return data;
 };
 
-// Get only courses the current student is enrolled in, with basic teacher/category info
 export const getMyEnrolledCourses = async () => {
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return [];
@@ -117,7 +116,10 @@ export const createCourse = async (payload: Database['public']['Tables']['course
   if (!authData?.user) throw new Error('Not authenticated');
   const insert = { ...payload, teacher_id: payload.teacher_id ?? authData.user.id };
   const { data, error } = await supabase.from('courses').insert(insert).select().single();
-  if (error) throw error;
+  if (error) {
+    console.error('Supabase createCourse error:', error);
+    throw new Error(error.message || 'Failed to create course');
+  }
   return data;
 };
 

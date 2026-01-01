@@ -31,7 +31,9 @@ export default function RootLayout({
 
         <QueryProvider>
           <Navbar />
-          {children}
+          <main className="mt-6 mx-4">
+            {children}
+          </main>
           <Footer />
         </QueryProvider>
       </body>

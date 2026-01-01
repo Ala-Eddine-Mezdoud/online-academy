@@ -9,8 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/admin/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
-import { getAllProfiles, createProfile, updateProfile, deleteProfile } from '@/app/lib/profiles.client';
-import { createUser, adminCreateTeacherLinks, adminUpdateTeacherLinks } from '@/app/lib/actions';
+import { getAllProfiles, createProfile, updateProfile } from '@/app/lib/profiles.client';
+import { createUser, deleteUser, adminCreateTeacherLinks, adminUpdateTeacherLinks } from '@/app/lib/actions';
 import { getLinksByTeacher } from '@/app/lib/teacher_links.client';
 import { wilayas } from '@/lib/mockData';
 
@@ -122,7 +122,10 @@ export default function TeachersPage() {
   const handleDelete = async () => {
     if (!selectedTeacher) return;
     try {
-      await deleteProfile(selectedTeacher.id);
+      const result = await deleteUser(selectedTeacher.id);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       await fetchTeachers();
       setIsDeleteOpen(false);
       setSelectedTeacher(null);

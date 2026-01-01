@@ -1,8 +1,9 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
+import { createServerSupabase } from './supabase/server';
 
-// Initialize Supabase Admin Client
+// Service Role Client - ONLY for auth.admin operations (creating users)
 const getSupabaseAdmin = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -19,6 +20,11 @@ const getSupabaseAdmin = () => {
       persistSession: false
     }
   });
+};
+
+// Authenticated Server Client - for database operations (respects RLS)
+const getAuthenticatedClient = async () => {
+  return await createServerSupabase();
 };
 
 export async function createUser(email: string, role: string, metadata: any, password?: string) {
@@ -81,21 +87,42 @@ export async function createUser(email: string, role: string, metadata: any, pas
   }
 }
 
+export async function deleteUser(userId: string) {
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
+    // Delete the auth user - this will cascade to delete the profile
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    
+    if (error) {
+      console.error('Error deleting user:', error);
+      throw new Error(error.message);
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function checkAdminConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Service role key is only required for creating users via auth.admin API
+  // Database operations use authenticated client with RLS
   return {
-    isConfigured: !!(url && key),
-    missingKey: !key
+    isConfigured: !!url,
+    missingKey: !key, // Only affects user creation
+    userCreationEnabled: !!(url && key)
   };
 }
 
 
 export async function adminGetAllEnrollments() {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('enrollments')
       .select(`
         *,
@@ -124,10 +151,10 @@ export async function adminGetAllEnrollments() {
 
 export async function adminEnrollAction(courseId: number, studentId: string) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
     // Check for existing enrollment (including soft-deleted ones)
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await supabase
       .from('enrollments')
       .select('*')
       .eq('course_id', courseId)
@@ -137,7 +164,7 @@ export async function adminEnrollAction(courseId: number, studentId: string) {
     if (existing) {
       // If it was soft-deleted, reactivate it
       if (existing.deleted_at) {
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await supabase
           .from('enrollments')
           .update({ deleted_at: null, progress: 0, enrolled_at: new Date().toISOString() })
           .eq('id', existing.id)
@@ -150,7 +177,7 @@ export async function adminEnrollAction(courseId: number, studentId: string) {
       return { success: false, error: 'Student is already enrolled in this course' };
     }
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('enrollments')
       .insert({ course_id: courseId, student_id: studentId, progress: 0 })
       .select()
@@ -169,9 +196,9 @@ export async function adminEnrollAction(courseId: number, studentId: string) {
 
 export async function adminDeleteEnrollmentAction(enrollmentId: number) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('enrollments')
       .delete()
       .eq('id', enrollmentId)
@@ -191,9 +218,9 @@ export async function adminDeleteEnrollmentAction(enrollmentId: number) {
 
 export async function adminUpdateEnrollmentAction(enrollmentId: number, progress: number) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('enrollments')
       .update({ progress })
       .eq('id', enrollmentId)
@@ -213,7 +240,7 @@ export async function adminUpdateEnrollmentAction(enrollmentId: number, progress
 
 export async function adminCreateTeacherLinks(teacherId: string, links: { platform: string; url: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
     if (!links || links.length === 0) {
       return { success: true, data: [] };
@@ -231,7 +258,7 @@ export async function adminCreateTeacherLinks(teacherId: string, links: { platfo
       return { success: true, data: [] };
     }
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('teacher_links')
       .insert(linksToInsert)
       .select();
@@ -249,10 +276,10 @@ export async function adminCreateTeacherLinks(teacherId: string, links: { platfo
 
 export async function adminUpdateTeacherLinks(teacherId: string, links: { id?: number; platform: string; url: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
     // Get existing links
-    const { data: existingLinks } = await supabaseAdmin
+    const { data: existingLinks } = await supabase
       .from('teacher_links')
       .select('id')
       .eq('teacher_id', teacherId);
@@ -263,7 +290,7 @@ export async function adminUpdateTeacherLinks(teacherId: string, links: { id?: n
     // Delete links that are no longer in the list
     const idsToDelete = existingIds.filter(id => !newLinkIds.includes(id));
     if (idsToDelete.length > 0) {
-      await supabaseAdmin
+      await supabase
         .from('teacher_links')
         .delete()
         .in('id', idsToDelete);
@@ -275,13 +302,13 @@ export async function adminUpdateTeacherLinks(teacherId: string, links: { id?: n
       
       if (link.id) {
         // Update existing
-        await supabaseAdmin
+        await supabase
           .from('teacher_links')
           .update({ platform: link.platform, url: link.url })
           .eq('id', link.id);
       } else {
         // Insert new
-        await supabaseAdmin
+        await supabase
           .from('teacher_links')
           .insert({ teacher_id: teacherId, platform: link.platform, url: link.url });
       }
@@ -296,7 +323,7 @@ export async function adminUpdateTeacherLinks(teacherId: string, links: { id?: n
 // Course-related admin actions
 export async function adminCreateCourseLearnings(courseId: number, learnings: { content: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
     if (!learnings || learnings.length === 0) {
       return { success: true, data: [] };
@@ -308,7 +335,7 @@ export async function adminCreateCourseLearnings(courseId: number, learnings: { 
     
     if (toInsert.length === 0) return { success: true, data: [] };
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('course_learnings')
       .insert(toInsert)
       .select();
@@ -322,7 +349,7 @@ export async function adminCreateCourseLearnings(courseId: number, learnings: { 
 
 export async function adminCreateCourseSyllabus(courseId: number, syllabus: { week_number: number; title: string; content: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
     if (!syllabus || syllabus.length === 0) {
       return { success: true, data: [] };
@@ -334,7 +361,7 @@ export async function adminCreateCourseSyllabus(courseId: number, syllabus: { we
     
     if (toInsert.length === 0) return { success: true, data: [] };
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('course_syllabus')
       .insert(toInsert)
       .select();
@@ -348,7 +375,7 @@ export async function adminCreateCourseSyllabus(courseId: number, syllabus: { we
 
 export async function adminCreateCourseFaq(courseId: number, faqs: { question: string; answer: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
     if (!faqs || faqs.length === 0) {
       return { success: true, data: [] };
@@ -360,7 +387,7 @@ export async function adminCreateCourseFaq(courseId: number, faqs: { question: s
     
     if (toInsert.length === 0) return { success: true, data: [] };
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('course_faq')
       .insert(toInsert)
       .select();
@@ -374,9 +401,9 @@ export async function adminCreateCourseFaq(courseId: number, faqs: { question: s
 
 export async function adminUpdateCourseLearnings(courseId: number, learnings: { id?: number; content: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await supabase
       .from('course_learnings')
       .select('id')
       .eq('course_id', courseId);
@@ -386,15 +413,15 @@ export async function adminUpdateCourseLearnings(courseId: number, learnings: { 
     const idsToDelete = existingIds.filter(id => !newIds.includes(id));
     
     if (idsToDelete.length > 0) {
-      await supabaseAdmin.from('course_learnings').delete().in('id', idsToDelete);
+      await supabase.from('course_learnings').delete().in('id', idsToDelete);
     }
     
     for (const item of learnings) {
       if (!item.content || !item.content.trim()) continue;
       if (item.id) {
-        await supabaseAdmin.from('course_learnings').update({ content: item.content }).eq('id', item.id);
+        await supabase.from('course_learnings').update({ content: item.content }).eq('id', item.id);
       } else {
-        await supabaseAdmin.from('course_learnings').insert({ course_id: courseId, content: item.content });
+        await supabase.from('course_learnings').insert({ course_id: courseId, content: item.content });
       }
     }
     
@@ -406,9 +433,9 @@ export async function adminUpdateCourseLearnings(courseId: number, learnings: { 
 
 export async function adminUpdateCourseSyllabus(courseId: number, syllabus: { id?: number; week_number: number; title: string; content: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await supabase
       .from('course_syllabus')
       .select('id')
       .eq('course_id', courseId);
@@ -418,15 +445,15 @@ export async function adminUpdateCourseSyllabus(courseId: number, syllabus: { id
     const idsToDelete = existingIds.filter(id => !newIds.includes(id));
     
     if (idsToDelete.length > 0) {
-      await supabaseAdmin.from('course_syllabus').delete().in('id', idsToDelete);
+      await supabase.from('course_syllabus').delete().in('id', idsToDelete);
     }
     
     for (const item of syllabus) {
       if (!item.title || !item.title.trim()) continue;
       if (item.id) {
-        await supabaseAdmin.from('course_syllabus').update({ week_number: item.week_number, title: item.title, content: item.content }).eq('id', item.id);
+        await supabase.from('course_syllabus').update({ week_number: item.week_number, title: item.title, content: item.content }).eq('id', item.id);
       } else {
-        await supabaseAdmin.from('course_syllabus').insert({ course_id: courseId, week_number: item.week_number, title: item.title, content: item.content });
+        await supabase.from('course_syllabus').insert({ course_id: courseId, week_number: item.week_number, title: item.title, content: item.content });
       }
     }
     
@@ -438,9 +465,9 @@ export async function adminUpdateCourseSyllabus(courseId: number, syllabus: { id
 
 export async function adminUpdateCourseFaq(courseId: number, faqs: { id?: number; question: string; answer: string }[]) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabase = await getAuthenticatedClient();
     
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await supabase
       .from('course_faq')
       .select('id')
       .eq('course_id', courseId);
@@ -450,15 +477,15 @@ export async function adminUpdateCourseFaq(courseId: number, faqs: { id?: number
     const idsToDelete = existingIds.filter(id => !newIds.includes(id));
     
     if (idsToDelete.length > 0) {
-      await supabaseAdmin.from('course_faq').delete().in('id', idsToDelete);
+      await supabase.from('course_faq').delete().in('id', idsToDelete);
     }
     
     for (const item of faqs) {
       if (!item.question || !item.question.trim()) continue;
       if (item.id) {
-        await supabaseAdmin.from('course_faq').update({ question: item.question, answer: item.answer }).eq('id', item.id);
+        await supabase.from('course_faq').update({ question: item.question, answer: item.answer }).eq('id', item.id);
       } else {
-        await supabaseAdmin.from('course_faq').insert({ course_id: courseId, question: item.question, answer: item.answer });
+        await supabase.from('course_faq').insert({ course_id: courseId, question: item.question, answer: item.answer });
       }
     }
     

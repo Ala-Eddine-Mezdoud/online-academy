@@ -235,10 +235,11 @@ export default function DashboardPage() {
       {configError && (
         <Alert variant="destructive" className="mb-6">
           <TriangleAlert className="h-4 w-4" />
-          <AlertTitle>Configuration Error</AlertTitle>
+          <AlertTitle>User Creation Disabled</AlertTitle>
           <AlertDescription>
-            The Supabase Service Role Key is missing. You will not be able to create new users (Students/Teachers).
-            Please add <code>SUPABASE_SERVICE_ROLE_KEY</code> to your <code>.env</code> file.
+            The Supabase Service Role Key is missing. Creating new users (Students/Teachers) is disabled.
+            Other admin operations (viewing, editing, deleting) will work using your RLS policies.
+            To enable user creation, add <code>SUPABASE_SERVICE_ROLE_KEY</code> to your <code>.env</code> file.
           </AlertDescription>
         </Alert>
       )}

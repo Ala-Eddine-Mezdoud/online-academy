@@ -245,13 +245,6 @@ export default function LiveSessionsPage() {
           </h1>
           <p className="text-gray-500">Manage live sessions for courses</p>
         </div>
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="bg-blue-500 hover:bg-blue-600"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Session
-        </Button>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200">

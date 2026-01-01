@@ -127,59 +127,37 @@ export default function Navbar() {
                     </div>
 
                     <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-                        {!loading && (
-                            user ? (
-                                /* Dashboard Button for logged in users */
-                                <a
-                                    href={getDashboardPath()}
-                                    className="h-[40px] px-4 flex items-center justify-center
-                                                font-['Open Sans'] text-[14px] leading-[22px] font-medium
-                                                text-white
-                                                bg-gradient-to-r from-blue-600 to-[#0C86D8]
-                                                rounded-[6px]
-                                                border-none
-                                                transition-all duration-200
-                                                hover:-translate-y-1
-                                                hover:from-blue-700 hover:to-[#0C86D8]"
-                                >
-                                    Dashboard
-                                </a>
-                            ) : (
-                                <>
-                                    {/* Log In */}
-                                    <a
-                                        href="/login"
-                                        className="w-[73px] h-[40px] px-3 flex items-center justify-center
-                                                    font-['Open Sans'] text-[14px] leading-[22px] font-medium
-                                                    text-blue-600
-                                                    bg-transparent
-                                                    rounded-[6px]
-                                                    border-[1.5px] border-blue-600
-                                                    transition-all duration-200
-                                                    hover:-translate-y-1
-                                                    hover:bg-blue-50"
-                                    >
-                                        Log In
-                                    </a>
+                        {/* Log In - white button */}
+                        <a
+                            href="/login"
+                            className="h-[40px] px-4 flex items-center justify-center
+                                        font-['Open Sans'] text-[14px] leading-[22px] font-medium
+                                        text-gray-700
+                                        bg-white
+                                        rounded-[6px]
+                                        border-[1.5px] border-gray-300
+                                        transition-all duration-200
+                                        hover:-translate-y-1
+                                        hover:border-gray-400"
+                        >
+                            Log In
+                        </a>
 
-                                    {/* Sign Up */}
-                                    <a
-                                        href="/signup"
-                                        className="w-[83px] h-[40px] px-3 flex items-center justify-center
-                                                    font-['Open Sans'] text-[14px] leading-[22px] font-medium
-                                                    text-white
-                                                    bg-gradient-to-r from-blue-600 to-[#0C86D8]
-                                                    rounded-[6px]
-                                                    border-none
-                                                    transition-all duration-200
-                                                    hover:-translate-y-1
-                                                    hover:from-blue-700 hover:to-[#0C86D8]"
-                                    >
-                                        Sign Up
-                                    </a>
-                                </>
-                            )
-                        )}
+                        {/* Sign Up - blue button */}
+                        <a
+                            href="/signup"
+                            className="h-[40px] px-4 flex items-center justify-center
+                                        font-['Open Sans'] text-[14px] leading-[22px] font-medium
+                                        text-white
+                                        bg-blue-500
+                                        rounded-[6px]
+                                        border-none
+                                        transition-all duration-200
+                                        hover:-translate-y-1
+                                        hover:bg-blue-600"
+                        >
+                            Sign Up
+                        </a>
                     </div>
 
                     {/* Mobile menu button */}
@@ -248,48 +226,29 @@ export default function Navbar() {
 
                         {/* Mobile Buttons */}
                         <div className="px-4 pt-4 pb-6 space-y-3">
-                            {!loading && (
-                                user ? (
-                                    <a
-                                        href={getDashboardPath()}
-                                        className="w-full h-[40px] px-3 flex items-center justify-center
-                                           font-['Open Sans'] text-[14px] font-medium
-                                           text-white
-                                           bg-gradient-to-r from-blue-600 to-[#0C86D8]
-                                           rounded-[6px]
-                                           transition-all duration-200
-                                           hover:from-blue-700 hover:to-[#0C86D8]"
-                                    >
-                                        Dashboard
-                                    </a>
-                                ) : (
-                                    <>
-                                        <a
-                                            href="/login"
-                                            className="w-full h-[40px] px-3 flex items-center justify-center
-                                               font-['Open Sans'] text-[14px] font-medium
-                                               text-blue-600 bg-transparent
-                                               border-[1.5px] border-blue-600 rounded-[6px]
-                                               transition-all duration-200
-                                               hover:bg-blue-50"
-                                        >
-                                            Log In
-                                        </a>
-                                        <a
-                                            href="/signup"
-                                            className="w-full h-[40px] px-3 flex items-center justify-center
-                                               font-['Open Sans'] text-[14px] font-medium
-                                               text-white
-                                               bg-gradient-to-r from-blue-600 to-[#0C86D8]
-                                               rounded-[6px]
-                                               transition-all duration-200
-                                               hover:from-blue-700 hover:to-[#0C86D8]"
-                                        >
-                                            Sign Up
-                                        </a>
-                                    </>
-                                )
-                            )}
+                            <a
+                                href="/login"
+                                className="w-full h-[40px] px-3 flex items-center justify-center
+                                   font-['Open Sans'] text-[14px] font-medium
+                                   text-gray-700 bg-white
+                                   border-[1.5px] border-gray-300 rounded-[6px]
+                                   transition-all duration-200
+                                   hover:border-gray-400"
+                            >
+                                Log In
+                            </a>
+                            <a
+                                href="/signup"
+                                className="w-full h-[40px] px-3 flex items-center justify-center
+                                   font-['Open Sans'] text-[14px] font-medium
+                                   text-white
+                                   bg-blue-500
+                                   rounded-[6px]
+                                   transition-all duration-200
+                                   hover:bg-blue-600"
+                            >
+                                Sign Up
+                            </a>
                         </div>
                     </div>
                 </div>

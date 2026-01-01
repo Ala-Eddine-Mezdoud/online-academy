@@ -6,9 +6,12 @@ type CourseHeroProps = {
   duration: string;
   students: string;
   level: string;
+  price?: string;
   primaryCta: string;
   secondaryCta: string;
   image: string;
+  onPrimaryClick?: () => void;
+  primaryDisabled?: boolean;
 };
 
 export function CourseHero({
@@ -17,9 +20,12 @@ export function CourseHero({
   duration,
   students,
   level,
+  price,
   primaryCta,
   secondaryCta,
   image,
+  onPrimaryClick,
+  primaryDisabled,
 }: CourseHeroProps) {
   const handleViewSyllabus = () => {
     const el = document.getElementById("course-syllabus");
@@ -76,12 +82,19 @@ export function CourseHero({
           <span className="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
             {level}
           </span>
+          {price ? (
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
+              {price}
+            </span>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap gap-4">
           <button
             type="button"
-            className="w-48! px-12 cursor-pointer rounded-md bg-blue-500 py-3 text-sm font-semibold text-white transition hover:bg-blue-400"
+            onClick={onPrimaryClick}
+            disabled={primaryDisabled}
+            className="w-48! px-12 cursor-pointer rounded-md bg-blue-500 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {primaryCta}
           </button>

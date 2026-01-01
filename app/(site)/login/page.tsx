@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   loginSchema,
   LoginFormData,
@@ -20,6 +20,8 @@ import { createBrowserSupabase } from "@/app/lib/supabase/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
 
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -77,7 +79,12 @@ export default function LoginPage() {
         student: "/dashboard/student",
       };
 
-      const redirectPath = roleRoutes[profile.role] || "/dashboard";
+      // If there's a redirect param and user is a student, use it
+      let redirectPath = roleRoutes[profile.role] || "/dashboard";
+      if (redirectTo && profile.role === "student") {
+        redirectPath = redirectTo;
+      }
+
       setTimeout(() => router.push(redirectPath), 1500);
     } catch (error) {
       setServerError(
@@ -91,8 +98,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen bg-[#F7F9FB] flex flex-col items-center justify-center py-6 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="w-full max-w-7xl h-full flex flex-col lg:flex-row items-center justify-center">
+    <div className="min-h-screen bg-[#F7F9FB] flex flex-col items-center justify-center pt-20 pb-6 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-7xl flex-1 flex flex-col lg:flex-row items-center justify-center">
         <MobileTitleAndSketch
           sketchImage="/login-sketch.png"
           sketchAlt="Login illustration"
@@ -122,7 +129,7 @@ export default function LoginPage() {
             <AuthFormFooter
               prompt="Don't have an account?"
               linkText="Sign Up"
-              linkHref="/signup"
+              linkHref={redirectTo ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : "/signup"}
             />
           </AuthFormCard>
 

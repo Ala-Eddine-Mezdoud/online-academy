@@ -9,8 +9,10 @@ interface CourseCardProps {
   instructor?: string;
   duration: string;
   description: string;
+  price?: number | null;
   buttonLabel?: string;
   showInstructor?: boolean;
+  basePath?: string;
 }
 
 export default function CourseCard({
@@ -21,8 +23,10 @@ export default function CourseCard({
   instructor,
   duration,
   description,
+  price,
   buttonLabel = "Enrol Now",
   showInstructor = true,
+  basePath = "/course",
 }: CourseCardProps) {
   const isRemote = typeof image === "string" && /^https?:\/\//.test(image);
   const isSvg = typeof image === "string" && image.includes(".svg");
@@ -79,10 +83,29 @@ export default function CourseCard({
             <dt className="font-medium text-slate-700">Duration:</dt>
             <dd className="text-slate-600">{duration}</dd>
           </div>
+          {typeof price === 'number' ? (
+            <div className="flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                className="h-4 w-4 text-slate-500"
+                aria-hidden
+              >
+                <path d="M12 1v22M19 5H9.5a3.5 3.5 0 0 0 0 7H14a4 4 0 0 1 0 8H5" />
+              </svg>
+              <dt className="font-medium text-slate-700">Price:</dt>
+              <dd className="text-slate-900 font-semibold">
+                {`${price.toLocaleString()} DA`}
+              </dd>
+            </div>
+          ) : null}
         </dl>
 
         <button className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-          <Link href={`/course/${id}`}>{buttonLabel}</Link>
+          <Link href={`${basePath}/${id}`}>{buttonLabel}</Link>
         </button>
       </div>
     </article>

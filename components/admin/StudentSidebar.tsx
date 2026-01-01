@@ -1,15 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, GraduationCap, BookOpen, UserCheck, LogOut } from 'lucide-react';
+import { createBrowserSupabase } from '@/app/lib/supabase/supabase';
 
 export function StudentSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createBrowserSupabase();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   const menuItems = [
     { path: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/dashboard/student/courses', label: 'Courses', icon: BookOpen },
+    { path: '/dashboard/student/courses', label: 'My Courses', icon: BookOpen },
+    { path: '/dashboard/student/enroll', label: 'Enroll in Courses', icon: GraduationCap },
   ];
 
   return (
@@ -43,7 +52,10 @@ export function StudentSidebar() {
       </nav>
 
       <div className="p-4 border-t border-gray-200">
-        <button className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors w-full">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors w-full"
+        >
           <LogOut className="w-5 h-5" />
           <span>Logout</span>
         </button>

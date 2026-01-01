@@ -13,9 +13,10 @@ export type CourseListItem = Awaited<
 
 interface CourseListClientProps {
   courses: CourseListItem[];
+  basePath?: string;
 }
 
-export default function CourseListClient({ courses }: CourseListClientProps) {
+export default function CourseListClient({ courses, basePath }: CourseListClientProps) {
   const [filters, setFilters] = useState({
     search: "",
     category: null as string | null,
@@ -123,6 +124,8 @@ export default function CourseListClient({ courses }: CourseListClientProps) {
                 instructor={course.teacher?.name || "Unknown"}
                 image={course.image || "/images/default-teacher.jpg"}
                 duration={`${course.num_weeks ?? 0} weeks`}
+                price={typeof course.price === 'number' ? course.price : null}
+                basePath={basePath}
               />
             ))}
           </div>

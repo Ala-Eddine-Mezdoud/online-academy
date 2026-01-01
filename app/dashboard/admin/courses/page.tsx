@@ -125,8 +125,9 @@ export default function CoursesPage() {
       await fetchData();
       setIsCreateOpen(false);
       resetForm();
-    } catch (error) {
-      console.error('Error creating course:', error);
+    } catch (error: any) {
+      console.error('Error creating course:', error?.message || error);
+      alert('Failed to create course: ' + (error?.message || 'Unknown error'));
     }
   };
 

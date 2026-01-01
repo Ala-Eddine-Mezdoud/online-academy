@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/admin/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
-import { getAllProfiles, createProfile, updateProfile, deleteProfile } from '@/app/lib/profiles.client';
-import { createUser } from '@/app/lib/actions';
+import { getAllProfiles, createProfile, updateProfile } from '@/app/lib/profiles.client';
+import { createUser, deleteUser } from '@/app/lib/actions';
 import { wilayas } from '@/lib/mockData';
 
 export default function StudentsPage() {
@@ -93,7 +93,10 @@ export default function StudentsPage() {
   const handleDelete = async () => {
     if (!selectedStudent) return;
     try {
-      await deleteProfile(selectedStudent.id);
+      const result = await deleteUser(selectedStudent.id);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       await fetchStudents();
       setIsDeleteOpen(false);
       setSelectedStudent(null);
@@ -133,10 +136,6 @@ export default function StudentsPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Students Management</h1>
           <p className="text-gray-500">Manage your platform students</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Student
-        </Button>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200">
