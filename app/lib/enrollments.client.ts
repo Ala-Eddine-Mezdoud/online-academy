@@ -46,7 +46,8 @@ export const getAllEnrollments = async () => {
       title,
       teacher_id
     ),
-    profiles:student_id (
+    profiles (
+
       name,
       email,
       role

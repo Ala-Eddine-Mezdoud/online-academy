@@ -90,6 +90,7 @@ export async function checkAdminConfig() {
   };
 }
 
+
 export async function adminGetAllEnrollments() {
   try {
     const supabaseAdmin = getSupabaseAdmin();

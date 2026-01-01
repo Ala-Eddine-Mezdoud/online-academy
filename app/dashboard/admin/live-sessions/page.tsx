@@ -44,7 +44,8 @@ export default function LiveSessionsPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -81,6 +82,7 @@ export default function LiveSessionsPage() {
     fetchData();
   }, []);
 
+
   const filteredSessions = sessions.filter(
     (session) =>
       session.session_title
@@ -95,6 +97,7 @@ export default function LiveSessionsPage() {
         ?.first_name?.toLowerCase()
         .includes(searchQuery.toLowerCase())
   );
+
 
   const handleCreate = async () => {
     try {
@@ -183,8 +186,10 @@ export default function LiveSessionsPage() {
   };
 
   const getTeacherName = (id: string) => {
-    const teacher = teachers.find((t) => t.id === id);
-    return teacher ? `${teacher.first_name} ${teacher.last_name}` : "Unknown";
+
+    const teacher = teachers.find(t => t.id === id);
+    return teacher ? teacher.name : 'Unknown';
+
   };
 
   const formatDateTime = (dateString: string) => {
@@ -228,6 +233,7 @@ export default function LiveSessionsPage() {
     }
   };
 
+
   if (loading) return <div className="p-8">Loading live sessions...</div>;
 
   return (
@@ -250,14 +256,27 @@ export default function LiveSessionsPage() {
 
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search sessions by title, course, or teacher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search sessions by title, course, or teacher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="live">Live</SelectItem>
+                <SelectItem value="ended">Ended</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -438,7 +457,7 @@ export default function LiveSessionsPage() {
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -561,7 +580,7 @@ export default function LiveSessionsPage() {
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -13,7 +13,6 @@ import { Progress } from '@/components/admin/ui/progress';
 import { getAllCourses } from '@/app/lib/courses.client';
 import { getAllProfiles } from '@/app/lib/profiles.client';
 import { adminEnrollAction, adminGetAllEnrollments, adminDeleteEnrollmentAction, adminUpdateEnrollmentAction } from '@/app/lib/actions';
-
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
