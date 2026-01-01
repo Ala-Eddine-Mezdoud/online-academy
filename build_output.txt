@@ -1,0 +1,47 @@
+
+> online-academy@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Ôû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env
+
+ ÔÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./app/lib/supabase/server.ts:2:1
+Ecmascript file had an error
+  1 | import { createServerClient } from "@supabase/ssr";
+> 2 | import { cookies } from "next/headers";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Database } from "./database.types";
+  4 | import { createClient } from '@supabase/supabase-js';
+  5 |
+
+You're importing a component that needs "next/headers". That only works in a Server Component but one of its parents is marked with "use client", so it's a Client Component.
+Learn more: https://nextjs.org/docs/app/building-your-application/rendering
+
+
+
+Import traces:
+  Server Component:
+    ./app/lib/supabase/server.ts
+    ./app/actions/contact.actions.ts
+
+  Client Component Browser:
+    ./app/lib/supabase/server.ts [Client Component Browser]
+    ./app/models/live-session.model.ts [Client Component Browser]
+    ./app/dashboard/admin/live-sessions/page.tsx [Client Component Browser]
+    ./app/dashboard/admin/live-sessions/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/lib/supabase/server.ts [Client Component SSR]
+    ./app/models/live-session.model.ts [Client Component SSR]
+    ./app/dashboard/admin/live-sessions/page.tsx [Client Component SSR]
+    ./app/dashboard/admin/live-sessions/page.tsx [Server Component]
+
+
+    at <unknown> (./app/lib/supabase/server.ts:2:1)

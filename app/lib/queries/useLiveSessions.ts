@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getActiveSessionsForStudent } from '../live_sessions.client';
+import { getActiveSessionsForStudent } from '@/app/models/live-session.model';
 
 export function useActiveLiveSessions() {
   return useQuery({

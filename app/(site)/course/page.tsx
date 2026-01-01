@@ -1,6 +1,6 @@
 import CourseListClient from "@/components/course/CourseListClient";
 
-import { getCoursesPageData } from "../../lib/courses.client";
+import { getCoursesPageData } from "@/app/models/course.model";
 
 export default async function Course() {
   const courses = await getCoursesPageData();

@@ -9,13 +9,15 @@ import { CourseOverview } from "@/components/course/details/CourseOverview";
 import { CourseSyllabus } from "@/components/course/details/CourseSyllabus";
 import { InstructorSpotlight } from "@/components/course/details/InstructorSpotlight";
 import { StudentReviews } from "@/components/course/details/StudentReviews";
-import { getFaqByCourse } from "@/app/lib/course_faq.client";
-import { getLearningsByCourse } from "@/app/lib/course_learnings.client";
-import { getReviewsByCourse } from "@/app/lib/course_reviews.client";
-import { getSyllabusByCourse } from "@/app/lib/course_syllabus.client";
-import { getEnrollmentsByCourse } from "@/app/lib/enrollments.client";
-import { getCourseById } from "@/app/lib/courses.client";
-import { getProfileById } from "@/app/lib/profiles.client";
+import {
+  getFaqByCourse,
+  getLearningsByCourse,
+  getReviewsByCourse,
+  getSyllabusByCourse,
+} from "@/app/models/course-content.model";
+import { getEnrollmentsByCourse } from "@/app/models/enrollment.model";
+import { getCourseById } from "@/app/models/course.model";
+import { getProfileById } from "@/app/models/profile.model";
 import type { Database } from "@/app/lib/supabase/database.types";
 
 type CourseRow = Database["public"]["Tables"]["courses"]["Row"];

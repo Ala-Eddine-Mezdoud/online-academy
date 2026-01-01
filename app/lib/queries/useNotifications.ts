@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getMyNotifications } from '../notifications.client';
+import { getMyNotifications } from '@/app/models/notification.model';
 
 export function useMyNotifications() {
   return useQuery({

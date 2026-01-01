@@ -1,43 +1,70 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, Link as LinkIcon, X } from 'lucide-react';
-import { Button } from '@/components/admin/ui/button';
-import { Input } from '@/components/admin/ui/input';
-import { Textarea } from '@/components/admin/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/admin/ui/dialog';
-import { Label } from '@/components/admin/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
-import { getAllProfiles, createProfile, updateProfile, deleteProfile } from '@/app/lib/profiles.client';
-import { createUser } from '@/app/lib/actions';
-import { wilayas } from '@/lib/mockData';
+import { useState, useEffect } from "react";
+import { Plus, Edit2, Trash2, Search, Link as LinkIcon, X } from "lucide-react";
+import { Button } from "@/components/admin/ui/button";
+import { Input } from "@/components/admin/ui/input";
+import { Textarea } from "@/components/admin/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/admin/ui/dialog";
+import { Label } from "@/components/admin/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/admin/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/admin/ui/alert-dialog";
+import { getAllProfiles } from "@/app/models/profile.model";
+import {
+  createProfile,
+  updateProfile,
+  deleteProfile,
+} from "@/app/actions/profile.actions";
+import { createUser } from "@/app/actions/auth.actions";
+import { wilayas } from "@/lib/mockData";
 
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone_number: '',
-    wilaya: '',
-    role_title: '',
-    description: '',
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    wilaya: "",
+    role_title: "",
+    description: "",
   });
 
   const fetchTeachers = async () => {
     try {
       setLoading(true);
-      const data = await getAllProfiles('teacher');
+      const data = await getAllProfiles("teacher");
       setTeachers(data || []);
     } catch (error) {
-      console.error('Error fetching teachers:', error);
+      console.error("Error fetching teachers:", error);
     } finally {
       setLoading(false);
     }
@@ -47,15 +74,16 @@ export default function TeachersPage() {
     fetchTeachers();
   }, []);
 
-  const filteredTeachers = teachers.filter(teacher =>
-    teacher.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teacher.role_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teacher.wilaya?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTeachers = teachers.filter(
+    (teacher) =>
+      teacher.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      teacher.role_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      teacher.wilaya?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreate = async () => {
     try {
-      const result = await createUser(formData.email, 'teacher', {
+      const result = await createUser(formData.email, "teacher", {
         role_title: `${formData.first_name} ${formData.last_name}`,
         description: `Email: ${formData.email}\nTitle: ${formData.role_title}\nBio: ${formData.description}`,
         phone_number: formData.phone_number,
@@ -70,7 +98,7 @@ export default function TeachersPage() {
       setIsCreateOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error creating teacher:', error);
+      console.error("Error creating teacher:", error);
     }
   };
 
@@ -88,7 +116,7 @@ export default function TeachersPage() {
       setSelectedTeacher(null);
       resetForm();
     } catch (error) {
-      console.error('Error updating teacher:', error);
+      console.error("Error updating teacher:", error);
     }
   };
 
@@ -100,28 +128,28 @@ export default function TeachersPage() {
       setIsDeleteOpen(false);
       setSelectedTeacher(null);
     } catch (error) {
-      console.error('Error deleting teacher:', error);
+      console.error("Error deleting teacher:", error);
     }
   };
 
   const openEdit = (teacher: any) => {
     setSelectedTeacher(teacher);
-    const [first, ...last] = (teacher.role_title || '').split(' ');
-    
+    const [first, ...last] = (teacher.role_title || "").split(" ");
+
     // Parse description
-    const descLines = (teacher.description || '').split('\n');
-    const emailLine = descLines.find((l: string) => l.startsWith('Email: '));
-    const titleLine = descLines.find((l: string) => l.startsWith('Title: '));
-    const bioLine = descLines.find((l: string) => l.startsWith('Bio: '));
-    
+    const descLines = (teacher.description || "").split("\n");
+    const emailLine = descLines.find((l: string) => l.startsWith("Email: "));
+    const titleLine = descLines.find((l: string) => l.startsWith("Title: "));
+    const bioLine = descLines.find((l: string) => l.startsWith("Bio: "));
+
     setFormData({
-      first_name: first || '',
-      last_name: last.join(' ') || '',
-      email: emailLine?.replace('Email: ', '') || '',
-      role_title: titleLine?.replace('Title: ', '') || '',
-      description: bioLine?.replace('Bio: ', '') || teacher.description || '',
-      phone_number: teacher.phone_number || '',
-      wilaya: teacher.wilaya || '',
+      first_name: first || "",
+      last_name: last.join(" ") || "",
+      email: emailLine?.replace("Email: ", "") || "",
+      role_title: titleLine?.replace("Title: ", "") || "",
+      description: bioLine?.replace("Bio: ", "") || teacher.description || "",
+      phone_number: teacher.phone_number || "",
+      wilaya: teacher.wilaya || "",
     });
     setIsEditOpen(true);
   };
@@ -132,7 +160,15 @@ export default function TeachersPage() {
   };
 
   const resetForm = () => {
-    setFormData({ first_name: '', last_name: '', email: '', phone_number: '', wilaya: '', role_title: '', description: '' });
+    setFormData({
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone_number: "",
+      wilaya: "",
+      role_title: "",
+      description: "",
+    });
   };
 
   if (loading) return <div className="p-8">Loading teachers...</div>;
@@ -141,10 +177,15 @@ export default function TeachersPage() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Teachers Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Teachers Management
+          </h1>
           <p className="text-gray-500">Manage your platform teachers</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add Teacher
         </Button>
@@ -167,29 +208,51 @@ export default function TeachersPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Email (Desc)</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title (Desc)</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Wilaya</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Email (Desc)
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Title (Desc)
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Phone
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Wilaya
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredTeachers.map((teacher) => {
-                const descLines = (teacher.description || '').split('\n');
-                const email = descLines.find((l: string) => l.startsWith('Email: '))?.replace('Email: ', '') || '-';
-                const title = descLines.find((l: string) => l.startsWith('Title: '))?.replace('Title: ', '') || '-';
-                
+                const descLines = (teacher.description || "").split("\n");
+                const email =
+                  descLines
+                    .find((l: string) => l.startsWith("Email: "))
+                    ?.replace("Email: ", "") || "-";
+                const title =
+                  descLines
+                    .find((l: string) => l.startsWith("Title: "))
+                    ?.replace("Title: ", "") || "-";
+
                 return (
                   <tr key={teacher.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {teacher.role_title || 'Unknown'}
+                      {teacher.role_title || "Unknown"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">{email}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{title}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.phone_number || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{teacher.wilaya || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {teacher.phone_number || "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {teacher.wilaya || "-"}
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex gap-2">
                         <Button
@@ -224,7 +287,8 @@ export default function TeachersPage() {
           <DialogHeader>
             <DialogTitle>Add New Teacher</DialogTitle>
             <DialogDescription>
-              Add a new teacher to the platform. Note: This does not create a login account.
+              Add a new teacher to the platform. Note: This does not create a
+              login account.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -234,7 +298,9 @@ export default function TeachersPage() {
                 <Input
                   id="first_name"
                   value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
                   placeholder="Ahmed"
                 />
               </div>
@@ -243,7 +309,9 @@ export default function TeachersPage() {
                 <Input
                   id="last_name"
                   value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
                   placeholder="Benali"
                 />
               </div>
@@ -254,7 +322,9 @@ export default function TeachersPage() {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 placeholder="teacher@example.com"
               />
             </div>
@@ -263,7 +333,9 @@ export default function TeachersPage() {
               <Input
                 id="role_title"
                 value={formData.role_title}
-                onChange={(e) => setFormData({ ...formData, role_title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, role_title: e.target.value })
+                }
                 placeholder="Senior Software Engineer"
               />
             </div>
@@ -272,13 +344,20 @@ export default function TeachersPage() {
               <Input
                 id="phone"
                 value={formData.phone_number}
-                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone_number: e.target.value })
+                }
                 placeholder="+213 555 123 456"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="wilaya">Wilaya</Label>
-              <Select value={formData.wilaya} onValueChange={(value: string) => setFormData({ ...formData, wilaya: value })}>
+              <Select
+                value={formData.wilaya}
+                onValueChange={(value: string) =>
+                  setFormData({ ...formData, wilaya: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select wilaya" />
                 </SelectTrigger>
@@ -296,17 +375,28 @@ export default function TeachersPage() {
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Brief bio about the teacher"
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateOpen(false);
+                resetForm();
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600">
+            <Button
+              onClick={handleCreate}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
               Create Teacher
             </Button>
           </DialogFooter>
@@ -329,7 +419,9 @@ export default function TeachersPage() {
                 <Input
                   id="edit-first_name"
                   value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -337,7 +429,9 @@ export default function TeachersPage() {
                 <Input
                   id="edit-last_name"
                   value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -347,7 +441,9 @@ export default function TeachersPage() {
                 id="edit-email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -355,7 +451,9 @@ export default function TeachersPage() {
               <Input
                 id="edit-role_title"
                 value={formData.role_title}
-                onChange={(e) => setFormData({ ...formData, role_title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, role_title: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -363,12 +461,19 @@ export default function TeachersPage() {
               <Input
                 id="edit-phone"
                 value={formData.phone_number}
-                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone_number: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-wilaya">Wilaya</Label>
-              <Select value={formData.wilaya} onValueChange={(value: string) => setFormData({ ...formData, wilaya: value })}>
+              <Select
+                value={formData.wilaya}
+                onValueChange={(value: string) =>
+                  setFormData({ ...formData, wilaya: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select wilaya" />
                 </SelectTrigger>
@@ -386,16 +491,28 @@ export default function TeachersPage() {
               <Textarea
                 id="edit-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setIsEditOpen(false); setSelectedTeacher(null); resetForm(); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditOpen(false);
+                setSelectedTeacher(null);
+                resetForm();
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleEdit} className="bg-blue-500 hover:bg-blue-600">
+            <Button
+              onClick={handleEdit}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
               Update Teacher
             </Button>
           </DialogFooter>
@@ -408,14 +525,23 @@ export default function TeachersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the teacher &quot;{selectedTeacher?.role_title}&quot;. This action cannot be undone.
+              This will permanently delete the teacher &quot;
+              {selectedTeacher?.role_title}&quot;. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setIsDeleteOpen(false); setSelectedTeacher(null); }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setIsDeleteOpen(false);
+                setSelectedTeacher(null);
+              }}
+            >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
