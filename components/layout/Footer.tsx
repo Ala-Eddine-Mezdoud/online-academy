@@ -49,30 +49,11 @@ export default function Footer() {
                                     Teachers
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/course/popular" className="text-gray-600 hover:text-gray-900 transition">
-                                    Popular Courses
-                                </Link>
-                            </li>
+                            
                         </ul>
                     </div>
 
-                    {/* Legal */}
-                    <div>
-                        <h4 className="text-lg font-semibold mb-4 text-gray-900">Legal</h4>
-                        <ul className="space-y-2">
-                            <li>
-                                <Link href="/privacy" className="text-gray-600 hover:text-gray-900 transition">
-                                    Privacy Policy
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/terms" className="text-gray-600 hover:text-gray-900 transition">
-                                    Terms of Service
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
+                    
                 </div>
 
                 <div>

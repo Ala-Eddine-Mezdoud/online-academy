@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Star } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/admin/ui/input';
 import { Button } from '@/components/admin/ui/button';
 import { Textarea } from '@/components/admin/ui/textarea';
@@ -10,6 +10,8 @@ import { Label } from '@/components/admin/ui/label';
 import { useActiveLiveSessions } from '@/app/lib/queries/useLiveSessions';
 import { createBrowserSupabase } from '@/app/lib/supabase/supabase';
 import { createReview, updateReview } from '@/app/lib/course_reviews.client';
+
+const ITEMS_PER_PAGE = 6;
 
 type EnrolledCourse = {
   id: number;
@@ -30,6 +32,7 @@ export default function MyCoursesPage() {
   const [courses, setCourses] = useState<EnrolledCourse[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const { data: activeSessions = [] } = useActiveLiveSessions();
 
   // Review modal state
@@ -118,6 +121,19 @@ export default function MyCoursesPage() {
     return title.includes(q) || teacher.includes(q) || category.includes(q);
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
+  const paginatedCourses = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredCourses, currentPage]);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
   const getTeacherName = (course: EnrolledCourse) => {
     return course.teacher?.name || 'Unknown';
   };
@@ -179,7 +195,7 @@ export default function MyCoursesPage() {
             <Input
               placeholder="Search courses by title, teacher, or category..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -192,12 +208,13 @@ export default function MyCoursesPage() {
               <p>No courses found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-              {filteredCourses.map((course) => {
-                const completed = isCourseCompleted(course);
-                const hasReview = !!course.myReview;
-                return (
-                <div key={course.id} className="flex flex-col bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow overflow-hidden">
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                {paginatedCourses.map((course) => {
+                  const completed = isCourseCompleted(course);
+                  const hasReview = !!course.myReview;
+                  return (
+                  <div key={course.id} className="flex flex-col bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow overflow-hidden">
                   {/* Course Image */}
                   <div className="relative h-40 w-full bg-gray-200">
                     <img
@@ -263,7 +280,43 @@ export default function MyCoursesPage() {
                 </div>
                 );
               })}
-            </div>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition ${
+                        currentPage === page
+                          ? "bg-blue-500 text-white"
+                          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

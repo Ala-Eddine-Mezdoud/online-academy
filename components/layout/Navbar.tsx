@@ -65,7 +65,7 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+        <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50 mb-4">
             <div className="container mx-auto ">
                 <div className="flex justify-between h-16">
                     {/* Logo */}

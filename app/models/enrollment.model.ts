@@ -7,14 +7,14 @@ export const getMyEnrollments = async () => {
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return [];
   const userId = authData.user.id;
-  const { data, error } = await supabase.from('enrollments').select('*').eq('student_id', userId);
+  const { data, error } = await supabase.from('enrollments').select('*').eq('student_id', userId).is('deleted_at', null);
   if (error) throw error;
   return data;
 };
 
 export const getEnrollmentsByCourse = async (courseId: number) => {
   const supabase = await createServerSupabase();
-  const { data, error } = await supabase.from('enrollments').select('*').eq('course_id', courseId);
+  const { data, error } = await supabase.from('enrollments').select('*').eq('course_id', courseId).is('deleted_at', null);
   if (error) throw error;
   return data;
 };
@@ -32,7 +32,7 @@ export const getAllEnrollments = async () => {
       email,
       role
     )
-  `);
+  `).is('deleted_at', null);
   if (err) throw err;
   return enrollments;
 };
@@ -49,7 +49,8 @@ export const getEnrollmentsWithStudentsByCourse = async (courseId: number) => {
         avatar_url
       )
     `)
-    .eq('course_id', courseId);
+    .eq('course_id', courseId)
+    .is('deleted_at', null);
     
   if (error) throw error;
   return data;

@@ -76,7 +76,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-white pt-20">
       {/* Main Section */}
       <section className="py-16 px-10 md:px-20">
         <div className="max-w-7xl mx-auto">

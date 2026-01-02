@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
 import { Badge } from '@/components/admin/ui/badge';
 import { Progress } from '@/components/admin/ui/progress';
+import { deleteEnrollment, updateEnrollmentProgress } from '@/app/lib/enrollments.client';
 import { getAllCourses } from '@/app/lib/courses.client';
 import { getAllProfiles } from '@/app/lib/profiles.client';
-import { adminEnrollAction, adminGetAllEnrollments, adminDeleteEnrollmentAction, adminUpdateEnrollmentAction } from '@/app/lib/actions';
+import { adminEnrollAction, adminGetAllEnrollments } from '@/app/lib/actions';
+
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
@@ -40,6 +42,7 @@ export default function EnrollmentsPage() {
         getAllProfiles('student'),
         getAllCourses()
       ]);
+      console.log('Enrollments fetched:', enrollmentsData);
       setEnrollments(enrollmentsData || []);
       setStudents(studentsData || []);
       setCourses(coursesData || []);
@@ -96,7 +99,7 @@ export default function EnrollmentsPage() {
   const handleEdit = async () => {
     if (!selectedEnrollment) return;
     try {
-      await adminUpdateEnrollmentAction(selectedEnrollment.id, Number(formData.progress));
+      await updateEnrollmentProgress(selectedEnrollment.id, Number(formData.progress));
       await fetchData();
       setIsEditOpen(false);
       setSelectedEnrollment(null);
@@ -110,7 +113,7 @@ export default function EnrollmentsPage() {
   const handleDelete = async () => {
     if (!selectedEnrollment) return;
     try {
-      await adminDeleteEnrollmentAction(selectedEnrollment.id);
+      await deleteEnrollment(selectedEnrollment.id);
       await fetchData();
       setIsDeleteOpen(false);
       setSelectedEnrollment(null);

@@ -402,7 +402,8 @@ using (
 create policy "Enrollments: select student/teacher/admin" on enrollments for select
 using (
     student_id = auth.uid() OR
-    exists (select 1 from courses c join profiles p on c.teacher_id = p.id where c.id = course_id and (p.id = auth.uid() OR p.role = 'admin'))
+    exists (select 1 from courses c where c.id = course_id and c.teacher_id = auth.uid()) OR
+    exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
 );
 
 create policy "Enrollments: insert student/admin" on enrollments for insert

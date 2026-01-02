@@ -123,9 +123,9 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-white">
+    <div className="bg-white ">
       {/* Hero Section */}
-      <section className="bg-slate-100 py-20 px-10 md:px-20">
+      <section className="bg-slate-100 py-20 pt-20 px-10 md:px-20">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
             Empowering Minds, Shaping Futures: Our Journey at EduConnect

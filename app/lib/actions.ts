@@ -120,9 +120,10 @@ export async function checkAdminConfig() {
 
 export async function adminGetAllEnrollments() {
   try {
-    const supabase = await getAuthenticatedClient();
+    // Use admin client to bypass RLS for admin operations
+    const supabaseAdmin = getSupabaseAdmin();
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('enrollments')
       .select(`
         *,
@@ -135,7 +136,8 @@ export async function adminGetAllEnrollments() {
           email,
           role
         )
-      `);
+      `)
+      .is('deleted_at', null);
     
     if (error) {
       console.error('Error fetching enrollments:', error);

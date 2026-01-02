@@ -1,4 +1,4 @@
-import TeacherCard from "@/components/teacher/TeacherCard";
+import TeacherListClient from "@/components/teacher/TeacherListClient";
 import { getAllProfiles } from "@/app/lib/profiles.client";
 
 export default async function Teacher() {
@@ -26,11 +26,7 @@ export default async function Teacher() {
             dedicated to guiding you through your educational journey.
           </p>
         </header>
-        <div className="mt-20  grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {instructorItems.map((teacher) => (
-            <TeacherCard key={teacher.id} {...teacher} />
-          ))}
-        </div>
+        <TeacherListClient teachers={instructorItems} />
       </section>
     </div>
   );

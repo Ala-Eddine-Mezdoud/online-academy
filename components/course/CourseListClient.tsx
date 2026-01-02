@@ -14,15 +14,17 @@ export type CourseListItem = Awaited<
 interface CourseListClientProps {
   courses: CourseListItem[];
   basePath?: string;
+  itemsPerPage?: number;
 }
 
-export default function CourseListClient({ courses, basePath }: CourseListClientProps) {
+export default function CourseListClient({ courses, basePath, itemsPerPage = 6 }: CourseListClientProps) {
   const [filters, setFilters] = useState({
     search: "",
     category: null as string | null,
     instructor: null as string | null,
     duration: null as string | null,
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredCourses = useMemo(() => {
     const search = filters.search.trim().toLowerCase();
@@ -49,6 +51,19 @@ export default function CourseListClient({ courses, basePath }: CourseListClient
       );
     });
   }, [courses, filters]);
+
+  // Reset to page 1 when filters change
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const paginatedCourses = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCourses.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCourses, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  const handleFilterChange = (key: string, value: string | null) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
 
   const categoryOptions = useMemo(() => {
     const set = new Set<string>();
@@ -84,18 +99,10 @@ export default function CourseListClient({ courses, basePath }: CourseListClient
         category={filters.category}
         instructor={filters.instructor}
         duration={filters.duration}
-        onSearchChange={(value) =>
-          setFilters((prev) => ({ ...prev, search: value }))
-        }
-        onCategoryChange={(value) =>
-          setFilters((prev) => ({ ...prev, category: value }))
-        }
-        onInstructorChange={(value) =>
-          setFilters((prev) => ({ ...prev, instructor: value }))
-        }
-        onDurationChange={(value) =>
-          setFilters((prev) => ({ ...prev, duration: value }))
-        }
+        onSearchChange={(value) => handleFilterChange("search", value)}
+        onCategoryChange={(value) => handleFilterChange("category", value)}
+        onInstructorChange={(value) => handleFilterChange("instructor", value)}
+        onDurationChange={(value) => handleFilterChange("duration", value)}
         categories={categoryOptions}
         instructors={instructorOptions}
         durations={durationOptions}
@@ -113,22 +120,63 @@ export default function CourseListClient({ courses, basePath }: CourseListClient
             No courses match the selected filters.
           </p>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredCourses.map((course) => (
-              <CourseCard
-                key={course.id}
-                id={String(course.id)}
-                title={course.title}
-                description={course.description || ""}
-                category={course.categories?.name || "Uncategorized"}
-                instructor={course.teacher?.name || "Unknown"}
-                image={course.image || "/images/default-teacher.jpg"}
-                duration={`${course.num_weeks ?? 0} weeks`}
-                price={typeof course.price === 'number' ? course.price : null}
-                basePath={basePath}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {paginatedCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  id={String(course.id)}
+                  title={course.title}
+                  description={course.description || ""}
+                  category={course.categories?.name || "Uncategorized"}
+                  instructor={course.teacher?.name || "Unknown"}
+                  image={course.image || "/images/default-teacher.jpg"}
+                  duration={`${course.num_weeks ?? 0} weeks`}
+                  price={typeof course.price === 'number' ? course.price : null}
+                  basePath={basePath}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-6">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition ${
+                      currentPage === page
+                        ? "bg-blue-500 text-white"
+                        : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

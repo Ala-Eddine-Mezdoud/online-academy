@@ -150,7 +150,7 @@ export default function CourseFilters({
   durations,
 }: CourseFiltersProps) {
   return (
-    <div className="rounded-2xl bg-neutral-100 p-6 shadow-sm">
+    <div className="rounded-2xl bg-white p-6 ">
       <div className="flex flex-col gap-4 lg:flex-row lg:flex-nowrap lg:items-start lg:gap-6">
         <div className="relative w-full lg:flex-1 lg:min-w-60">
           <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">

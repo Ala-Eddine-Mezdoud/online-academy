@@ -9,8 +9,8 @@ export const enroll = async (courseId: number) => {
   if (!authData?.user) throw new Error('Not authenticated');
   const userId = authData.user.id;
   
-  // avoid duplicate
-  const { data: existing } = await supabase.from('enrollments').select('*').eq('course_id', courseId).eq('student_id', userId).maybeSingle();
+  // avoid duplicate - only check non-deleted enrollments
+  const { data: existing } = await supabase.from('enrollments').select('*').eq('course_id', courseId).eq('student_id', userId).is('deleted_at', null).maybeSingle();
   if (existing) return existing;
   
   const { data, error } = await supabase.from('enrollments').insert({ course_id: courseId, student_id: userId }).select().single();
@@ -50,8 +50,8 @@ export const updateEnrollmentProgress = async (id: number, progress: number) => 
 export const adminEnroll = async (courseId: number, studentId: string) => {
   const supabase = await createServerSupabase();
   
-  // check for existing
-  const { data: existing } = await supabase.from('enrollments').select('*').eq('course_id', courseId).eq('student_id', studentId).maybeSingle();
+  // check for existing - only check non-deleted enrollments
+  const { data: existing } = await supabase.from('enrollments').select('*').eq('course_id', courseId).eq('student_id', studentId).is('deleted_at', null).maybeSingle();
   if (existing) return existing;
   
   const { data, error } = await supabase.from('enrollments').insert({ course_id: courseId, student_id: studentId }).select().single();
