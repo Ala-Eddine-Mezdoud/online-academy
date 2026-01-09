@@ -42,12 +42,17 @@ export default async function updateSession(request: NextRequest) {
   const ADMIN_ROUTES = ["/dashboard/admin"];
   const TEACHER_ROUTES = ["/dashboard/teacher"];
   const STUDENT_ROUTES = ["/dashboard/student"];
+  // Public/visitor-only routes - logged-in users should be redirected to dashboard
+  const VISITOR_ONLY_ROUTES = ["/", "/about", "/contact", "/course", "/teacher"];
 
   const isAuthRoute = AUTH_ROUTES.some((path) => pathname.startsWith(path));
   const isProtectedRoute = PROTECTED_ROUTES.some((path) => pathname.startsWith(path));
   const isAdminRoute = ADMIN_ROUTES.some((path) => pathname.startsWith(path));
   const isTeacherRoute = TEACHER_ROUTES.some((path) => pathname.startsWith(path));
   const isStudentRoute = STUDENT_ROUTES.some((path) => pathname.startsWith(path));
+  const isVisitorOnlyRoute = VISITOR_ONLY_ROUTES.some((path) => 
+    pathname === path || (path !== "/" && pathname.startsWith(path))
+  );
 
   // 1. Auth routes: redirect logged-in users to their dashboard
   if (isAuthRoute && user) {
@@ -56,7 +61,14 @@ export default async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 2. Protected routes: require authentication
+  // 2. Visitor-only routes: redirect logged-in users to their dashboard
+  if (isVisitorOnlyRoute && user) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = getRoleDashboard(userRole);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // 3. Protected routes: require authentication
   if (isProtectedRoute && !user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
@@ -64,7 +76,7 @@ export default async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 3. Role-based access control for dashboard routes
+  // 4. Role-based access control for dashboard routes
   if (user && isProtectedRoute) {
     // Handle /dashboard root - redirect to role-specific dashboard
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
