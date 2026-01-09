@@ -178,15 +178,18 @@ export default function AboutPage() {
           <p className="text-sm font-semibold uppercase tracking-wider text-slate-900 text-center mb-12">
             {story.subtitle}
           </p>
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            <div className="bg-white rounded-2xl p-2 shadow-sm">
-              {/* Placeholder for team illustration - leave space for image */}
-              <div className="aspect-4/3 bg-slate-100 rounded-xl flex items-center justify-center">
-                <span className="text-slate-400 text-sm">Team Illustration</span>
-              </div>
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="flex justify-center">
+              <Image
+                src="/images/teamillustartion.png"
+                alt="Team illustration"
+                width={557}
+                height={365}
+                className="rounded-xl"
+              />
             </div>
             <div className="bg-white border border-slate-300 rounded-2xl p-8 shadow-sm">
-              <p className="text-sm text-slate-700 leading-relaxed">
+              <p className="text-base text-slate-700 leading-relaxed">
                 {story.description}
               </p>
             </div>

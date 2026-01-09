@@ -50,7 +50,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/course/popular" className="text-gray-600 hover:text-gray-900 transition">
+                                <Link href="/#popular-courses" className="text-gray-600 hover:text-gray-900 transition">
                                     Popular Courses
                                 </Link>
                             </li>
