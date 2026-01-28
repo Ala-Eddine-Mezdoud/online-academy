@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import CourseFilters from "@/components/course/CourseFilters";
 import CourseCard from "@/components/course/CourseCard";
 
-import { getCoursesPageData } from "@/app/lib/courses.client";
+import { getCoursesPageData } from "@/app/models/course.model";
 
 export type CourseListItem = Awaited<
   ReturnType<typeof getCoursesPageData>
@@ -13,9 +13,10 @@ export type CourseListItem = Awaited<
 
 interface CourseListClientProps {
   courses: CourseListItem[];
+  basePath?: string;
 }
 
-export default function CourseListClient({ courses }: CourseListClientProps) {
+export default function CourseListClient({ courses, basePath }: CourseListClientProps) {
   const [filters, setFilters] = useState({
     search: "",
     category: null as string | null,
@@ -116,13 +117,15 @@ export default function CourseListClient({ courses }: CourseListClientProps) {
             {filteredCourses.map((course) => (
               <CourseCard
                 key={course.id}
-                id={course.id}
+                id={String(course.id)}
                 title={course.title}
                 description={course.description || ""}
                 category={course.categories?.name || "Uncategorized"}
                 instructor={course.teacher?.name || "Unknown"}
                 image={course.image || "/images/default-teacher.jpg"}
                 duration={`${course.num_weeks ?? 0} weeks`}
+                price={typeof course.price === 'number' ? course.price : null}
+                basePath={basePath}
               />
             ))}
           </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+// Switch to backend route to avoid client env/RLS issues
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -9,6 +10,9 @@ export default function ContactPage() {
     subject: '',
     message: '',
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -17,10 +21,58 @@ export default function ContactPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', formData);
+    setSubmitting(true);
+    setSuccess(null);
+    setError(null);
+
+    try {
+      // Timeout wrapper to avoid hanging submissions
+      const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
+        new Promise<T>((resolve, reject) => {
+          const id = setTimeout(() => {
+            reject(new Error('Request timed out. Please try again.'));
+          }, ms);
+          promise
+            .then((val) => {
+              clearTimeout(id);
+              resolve(val);
+            })
+            .catch((err) => {
+              clearTimeout(id);
+              reject(err);
+            });
+        });
+
+      const res = await withTimeout(
+        fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject,
+            message: formData.message,
+          }),
+        }),
+        10000
+      );
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || 'Failed to send message.');
+      }
+
+      setSuccess('Message sent successfully. We will get back to you soon.');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to send message. Please try again.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -33,6 +85,16 @@ export default function ContactPage() {
             <div>
               <h1 className="text-4xl font-bold text-slate-900 mb-8">Get in Touch</h1>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="p-3 rounded-lg bg-green-50 text-green-700 text-sm">
+                    {success}
+                  </div>
+                )}
                 {/* Name Field */}
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-slate-900 mb-2">
@@ -104,9 +166,10 @@ export default function ContactPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-600 transition"
+                  disabled={submitting}
+                  className="w-full bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {submitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>

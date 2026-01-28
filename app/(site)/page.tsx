@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createBrowserSupabase } from "../lib/supabase/supabase";
 
 const stats = [
   {
@@ -27,26 +28,12 @@ const stats = [
   },
 ];
 
-const popularCourses = [
-  {
-    id: 1,
-    title: "User Research and Analysis",
-    badge: "Design",
-    image: "/images/course-1.jpg",
-  },
-  {
-    id: 2,
-    title: "Web3: Embrace the Future",
-    badge: "20% OFF",
-    image: "/images/course-2.jpg",
-  },
-  {
-    id: 3,
-    title: "Mastering Digital Marketing",
-    badge: "Marketing",
-    image: "/images/course-3.jpg",
-  },
-];
+interface PopularCourse {
+  id: number;
+  title: string;
+  image: string | null;
+  category: string | null;
+}
 
 const faqs = [
   {
@@ -74,6 +61,47 @@ const faqs = [
 export default function Home() {
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [popularCourses, setPopularCourses] = useState<PopularCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPopularCourses = async () => {
+      try {
+        const supabase = createBrowserSupabase();
+        const { data, error } = await supabase
+          .from('courses')
+          .select(`
+            id,
+            title,
+            image,
+            categories:category_id (
+              name
+            )
+          `)
+          .limit(3);
+
+        if (error) {
+          console.error('Error fetching popular courses:', error);
+          return;
+        }
+
+        const courses: PopularCourse[] = (data || []).map((course: any) => ({
+          id: course.id,
+          title: course.title,
+          image: course.image,
+          category: course.categories?.name || null,
+        }));
+
+        setPopularCourses(courses);
+      } catch (err) {
+        console.error('Error fetching popular courses:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularCourses();
+  }, []);
 
   const toggleFaq = (id: number) => {
     setOpenFaq(openFaq === id ? null : id);
@@ -83,7 +111,7 @@ export default function Home() {
     <div className="bg-white py-10 container mx-auto">
       {/* Hero Section */}
       <section className=" py-16">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-3xl mx-auto text-center">
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
               Your Journey to Knowledge Starts Here
@@ -91,7 +119,7 @@ export default function Home() {
             <p className="text-base text-slate-600 leading-relaxed">
               Offer real eLearning tools across 20,000+ courses led by industry experts. Empower your team with cutting-edge skills and knowledge through our comprehensive learning platform.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 justify-center">
               <Link
                 href="/course"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
@@ -104,12 +132,6 @@ export default function Home() {
               >
                 Learn More
               </Link>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            {/* Placeholder for hero image */}
-            <div className="aspect-4/3 bg-slate-100 rounded-xl flex items-center justify-center">
-              <span className="text-slate-400 text-sm">Hero Image</span>
             </div>
           </div>
         </div>
@@ -159,35 +181,51 @@ export default function Home() {
       </section>
 
       {/* Popular Courses Section */}
-      <section className="bg-slate-50 py-16 ">
+      <section id="popular-courses" className="bg-slate-50 py-16 ">
         <div className="">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-12">
             Popular Courses
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {popularCourses.map((course) => (
-              <div key={course.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-                <div className="relative">
-                  {/* Placeholder for course image */}
-                  <div className="aspect-video bg-slate-100 flex items-center justify-center">
-                    <span className="text-slate-400 text-sm">Course Image</span>
+          {loading ? (
+            <div className="text-center text-slate-500">Loading courses...</div>
+          ) : popularCourses.length === 0 ? (
+            <div className="text-center text-slate-500">No courses available yet.</div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {popularCourses.map((course) => (
+                <div key={course.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+                  <div className="relative">
+                    <div className="aspect-video bg-slate-100 flex items-center justify-center overflow-hidden">
+                      {course.image ? (
+                        <Image
+                          src={course.image}
+                          alt={course.title}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-slate-400 text-sm">Course Image</span>
+                      )}
+                    </div>
+                    {course.category && (
+                      <span className="absolute top-3 left-3 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                        {course.category}
+                      </span>
+                    )}
                   </div>
-                  <span className="absolute top-3 left-3 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                    {course.badge}
-                  </span>
+                  <div className="p-6 space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900">{course.title}</h3>
+                    <Link
+                      href={`/course/${course.id}`}
+                      className="block w-full text-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
+                    >
+                      Learn More
+                    </Link>
+                  </div>
                 </div>
-                <div className="p-6 space-y-4">
-                  <h3 className="text-lg font-bold text-slate-900">{course.title}</h3>
-                  <Link
-                    href={`/course/${course.id}`}
-                    className="block w-full text-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
-                  >
-                    Learn More
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

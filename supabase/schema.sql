@@ -240,8 +240,8 @@ alter table categories enable row level security;
 
 -- PROFILES *********************************
 -- Users can read/update their own profile
-create policy "Profiles: select own or admin" on profiles for select
-using (auth.uid() = id OR (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')));
+create policy "Profiles: select for all" on profiles for select
+using (true);
 
 create policy "Profiles: update own or admin" on profiles for update
 using (auth.uid() = id OR (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')));
@@ -251,10 +251,9 @@ with check (auth.uid() = id OR (exists (select 1 from profiles p where p.id = au
 
 
 -- TEACHER LINKS *************************
-create policy "TeacherLinks: select own or admin" on teacher_links for select
+create policy "TeacherLinks: select for all users" on teacher_links for select
 using (
-    teacher_id = auth.uid() OR
-    (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
+    true
 );
 
 create policy "TeacherLinks: insert" on teacher_links for insert
@@ -267,26 +266,24 @@ create policy "TeacherLinks: delete own or admin" on teacher_links for delete
 using (teacher_id = auth.uid() OR (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')));
 
 -- COURSES ************************
-create policy "Courses: select students/admin" on courses for select
+create policy "Courses: select for all users" on courses for select
 using (
-    (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'student')) OR
-    teacher_id = auth.uid() OR
+    true
+);
+
+create policy "Courses: insert admin" on courses for insert
+with check (
     (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
 );
 
-create policy "Courses: insert teacher/admin" on courses for insert
-with check (
-    teacher_id = auth.uid() OR (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
+create policy "Courses: update admin" on courses for update
+using (
+    (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
 );
 
-create policy "Courses: update teacher/admin" on courses for update
+create policy "Courses: delete admin" on courses for delete
 using (
-    teacher_id = auth.uid() OR (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
-);
-
-create policy "Courses: delete teacher/admin" on courses for delete
-using (
-    teacher_id = auth.uid() OR (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
+    (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
 );
 
 -- COURSE LEARNINGS *************************
@@ -346,11 +343,9 @@ using (
 );
 
 -- COURSE REVIEWS ******************************
-create policy "CourseReviews: select students/teachers/admin" on course_reviews for select
+create policy "CourseReviews: select for all users" on course_reviews for select
 using (
-    exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'student') OR
-    exists (select 1 from courses c join profiles p on c.teacher_id = p.id where c.id = course_id and (p.id = auth.uid() OR p.role = 'admin'))
-);
+    true);
 
 create policy "CourseReviews: insert student/admin" 
 on course_reviews for insert
@@ -471,9 +466,9 @@ using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'ad
 
 
 -- CATEGORIES ***************************
-create policy "Categories: select all authenticated"
+create policy "Categories: select all users"
 on categories for select
-using (auth.role() = 'authenticated');
+using (true);
 
 create policy "Categories: insert admin only"
 on categories for insert

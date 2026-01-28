@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   signUpSchema,
   SignUpFormData,
@@ -22,6 +22,8 @@ type Role = "Student" | "Teacher" | "Admin";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState<
@@ -83,7 +85,8 @@ export default function SignUpPage() {
 
       // Profile is created automatically via database trigger using the metadata above
       setIsSuccess(true);
-      setTimeout(() => router.push("/login"), 1500);
+      const loginUrl = redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login";
+      setTimeout(() => router.push(loginUrl), 1500);
     } catch (error) {
       setServerError(
         error instanceof Error
@@ -140,7 +143,7 @@ export default function SignUpPage() {
         <AuthFormFooter
           prompt="Already have an account?"
           linkText="Log In"
-          linkHref="/login"
+          linkHref={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
         />
       </AuthFormCard>
     </AuthPageLayout>

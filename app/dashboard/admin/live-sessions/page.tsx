@@ -1,35 +1,63 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, Video, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/admin/ui/button';
-import { Input } from '@/components/admin/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/admin/ui/dialog';
-import { Label } from '@/components/admin/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/admin/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/admin/ui/alert-dialog';
-import { Badge } from '@/components/admin/ui/badge';
-import { getAllSessions, createSession, updateSession, deleteSession } from '@/app/lib/live_sessions.client';
-import { getAllCourses } from '@/app/lib/courses.client';
-import { getAllProfiles } from '@/app/lib/profiles.client';
+import { useState, useEffect } from "react";
+import { Plus, Edit2, Trash2, Search, Video, ExternalLink } from "lucide-react";
+import { Button } from "@/components/admin/ui/button";
+import { Input } from "@/components/admin/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/admin/ui/dialog";
+import { Label } from "@/components/admin/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/admin/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/admin/ui/alert-dialog";
+import { Badge } from "@/components/admin/ui/badge";
+import { getAllSessions } from "@/app/models/live-session.model";
+import {
+  createSession,
+  updateSession,
+  deleteSession,
+} from "@/app/actions/live-session.actions";
+import { getAllCourses } from "@/app/models/course.model";
+import { getAllProfiles } from "@/app/models/profile.model";
 
 export default function LiveSessionsPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    session_title: '',
-    course_id: '',
-    teacher_id: '',
-    session_link: '',
-    start_time: '',
-    end_time: '',
+    session_title: "",
+    course_id: "",
+    teacher_id: "",
+    session_link: "",
+    start_time: "",
+    end_time: "",
   });
 
   const fetchData = async () => {
@@ -38,13 +66,13 @@ export default function LiveSessionsPage() {
       const [sessionsData, coursesData, teachersData] = await Promise.all([
         getAllSessions(),
         getAllCourses(),
-        getAllProfiles('teacher')
+        getAllProfiles("teacher"),
       ]);
       setSessions(sessionsData || []);
       setCourses(coursesData || []);
       setTeachers(teachersData || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -54,11 +82,22 @@ export default function LiveSessionsPage() {
     fetchData();
   }, []);
 
-  const filteredSessions = sessions.filter(session =>
-    session.session_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    courses.find(c => c.id === session.course_id)?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    teachers.find(t => t.id === session.teacher_id)?.first_name?.toLowerCase().includes(searchQuery.toLowerCase())
+
+  const filteredSessions = sessions.filter(
+    (session) =>
+      session.session_title
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      courses
+        .find((c) => c.id === session.course_id)
+        ?.title?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      teachers
+        .find((t) => t.id === session.teacher_id)
+        ?.first_name?.toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
+
 
   const handleCreate = async () => {
     try {
@@ -74,7 +113,7 @@ export default function LiveSessionsPage() {
       setIsCreateOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error creating session:', error);
+      console.error("Error creating session:", error);
     }
   };
 
@@ -94,7 +133,7 @@ export default function LiveSessionsPage() {
       setSelectedSession(null);
       resetForm();
     } catch (error) {
-      console.error('Error updating session:', error);
+      console.error("Error updating session:", error);
     }
   };
 
@@ -106,19 +145,21 @@ export default function LiveSessionsPage() {
       setIsDeleteOpen(false);
       setSelectedSession(null);
     } catch (error) {
-      console.error('Error deleting session:', error);
+      console.error("Error deleting session:", error);
     }
   };
 
   const openEdit = (session: any) => {
     setSelectedSession(session);
     setFormData({
-      session_title: session.session_title || '',
-      course_id: String(session.course_id || ''),
-      teacher_id: session.teacher_id || '',
-      session_link: session.session_link || '',
-      start_time: session.start_time ? formatDateTimeLocal(session.start_time) : '',
-      end_time: session.end_time ? formatDateTimeLocal(session.end_time) : '',
+      session_title: session.session_title || "",
+      course_id: String(session.course_id || ""),
+      teacher_id: session.teacher_id || "",
+      session_link: session.session_link || "",
+      start_time: session.start_time
+        ? formatDateTimeLocal(session.start_time)
+        : "",
+      end_time: session.end_time ? formatDateTimeLocal(session.end_time) : "",
     });
     setIsEditOpen(true);
   };
@@ -130,36 +171,38 @@ export default function LiveSessionsPage() {
 
   const resetForm = () => {
     setFormData({
-      session_title: '',
-      course_id: '',
-      teacher_id: '',
-      session_link: '',
-      start_time: '',
-      end_time: '',
+      session_title: "",
+      course_id: "",
+      teacher_id: "",
+      session_link: "",
+      start_time: "",
+      end_time: "",
     });
   };
 
   const getCourseName = (id: number) => {
-    const course = courses.find(c => c.id === id);
-    return course ? course.title : 'Unknown';
+    const course = courses.find((c) => c.id === id);
+    return course ? course.title : "Unknown";
   };
 
   const getTeacherName = (id: string) => {
+
     const teacher = teachers.find(t => t.id === id);
-    return teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Unknown';
+    return teacher ? teacher.name : 'Unknown';
+
   };
 
   const formatDateTime = (dateString: string) => {
-    if (!dateString) return '-';
+    if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+    return date.toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
     });
   };
 
   const formatDateTimeLocal = (dateString: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
     return date.toISOString().slice(0, 16);
   };
@@ -170,13 +213,26 @@ export default function LiveSessionsPage() {
     const end = new Date(endTime);
 
     if (now < start) {
-      return { label: 'Upcoming', variant: 'outline' as const, className: 'bg-blue-50 text-blue-700 border-blue-200' };
+      return {
+        label: "Upcoming",
+        variant: "outline" as const,
+        className: "bg-blue-50 text-blue-700 border-blue-200",
+      };
     } else if (now >= start && now <= end) {
-      return { label: 'Live', variant: 'outline' as const, className: 'bg-green-50 text-green-700 border-green-200' };
+      return {
+        label: "Live",
+        variant: "outline" as const,
+        className: "bg-green-50 text-green-700 border-green-200",
+      };
     } else {
-      return { label: 'Ended', variant: 'outline' as const, className: 'bg-gray-50 text-gray-700 border-gray-200' };
+      return {
+        label: "Ended",
+        variant: "outline" as const,
+        className: "bg-gray-50 text-gray-700 border-gray-200",
+      };
     }
   };
+
 
   if (loading) return <div className="p-8">Loading live sessions...</div>;
 
@@ -184,25 +240,36 @@ export default function LiveSessionsPage() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Live Sessions Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Live Sessions Management
+          </h1>
           <p className="text-gray-500">Manage live sessions for courses</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-500 hover:bg-blue-600">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Session
-        </Button>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search sessions by title, course, or teacher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search sessions by title, course, or teacher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="live">Live</SelectItem>
+                <SelectItem value="ended">Ended</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -210,40 +277,73 @@ export default function LiveSessionsPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Session Title</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Course</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Teacher</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Start Time</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">End Time</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Link</th>
-                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Session Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Course
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Teacher
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Start Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  End Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Link
+                </th>
+                <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredSessions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     <Video className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <p>No live sessions found</p>
                   </td>
                 </tr>
               ) : (
                 filteredSessions.map((session) => {
-                  const status = getSessionStatus(session.start_time, session.end_time);
+                  const status = getSessionStatus(
+                    session.start_time,
+                    session.end_time
+                  );
                   return (
                     <tr key={session.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-xs">
                         <div className="truncate">{session.session_title}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                        <div className="truncate">{getCourseName(session.course_id)}</div>
+                        <div className="truncate">
+                          {getCourseName(session.course_id)}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{getTeacherName(session.teacher_id)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{formatDateTime(session.start_time)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{formatDateTime(session.end_time)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {getTeacherName(session.teacher_id)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {formatDateTime(session.start_time)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {formatDateTime(session.end_time)}
+                      </td>
                       <td className="px-6 py-4 text-sm">
-                        <Badge variant={status.variant} className={status.className}>
+                        <Badge
+                          variant={status.variant}
+                          className={status.className}
+                        >
                           {status.label}
                         </Badge>
                       </td>
@@ -297,7 +397,8 @@ export default function LiveSessionsPage() {
           <DialogHeader>
             <DialogTitle>Add New Live Session</DialogTitle>
             <DialogDescription>
-              Schedule a new live session for a course. Fill in all the details below.
+              Schedule a new live session for a course. Fill in all the details
+              below.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -306,15 +407,22 @@ export default function LiveSessionsPage() {
               <Input
                 id="session_title"
                 value={formData.session_title}
-                onChange={(e) => setFormData({ ...formData, session_title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, session_title: e.target.value })
+                }
                 placeholder="Introduction to Web Development"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="course">Course *</Label>
-                <Select value={formData.course_id} onValueChange={(value: string) => setFormData({ ...formData, course_id: value })}>
+                <Select
+                  value={formData.course_id}
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, course_id: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select course" />
                   </SelectTrigger>
@@ -330,14 +438,19 @@ export default function LiveSessionsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="teacher">Teacher *</Label>
-                <Select value={formData.teacher_id} onValueChange={(value: string) => setFormData({ ...formData, teacher_id: value })}>
+                <Select
+                  value={formData.teacher_id}
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, teacher_id: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select teacher" />
                   </SelectTrigger>
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -350,7 +463,9 @@ export default function LiveSessionsPage() {
               <Input
                 id="session_link"
                 value={formData.session_link}
-                onChange={(e) => setFormData({ ...formData, session_link: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, session_link: e.target.value })
+                }
                 placeholder="https://zoom.us/j/123456789"
               />
             </div>
@@ -362,7 +477,9 @@ export default function LiveSessionsPage() {
                   id="start_time"
                   type="datetime-local"
                   value={formData.start_time}
-                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, start_time: e.target.value })
+                  }
                 />
               </div>
 
@@ -372,16 +489,27 @@ export default function LiveSessionsPage() {
                   id="end_time"
                   type="datetime-local"
                   value={formData.end_time}
-                  onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, end_time: e.target.value })
+                  }
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateOpen(false);
+                resetForm();
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600">
+            <Button
+              onClick={handleCreate}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
               Create Session
             </Button>
           </DialogFooter>
@@ -403,14 +531,21 @@ export default function LiveSessionsPage() {
               <Input
                 id="edit-session_title"
                 value={formData.session_title}
-                onChange={(e) => setFormData({ ...formData, session_title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, session_title: e.target.value })
+                }
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-course">Course *</Label>
-                <Select value={formData.course_id} onValueChange={(value: string) => setFormData({ ...formData, course_id: value })}>
+                <Select
+                  value={formData.course_id}
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, course_id: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select course" />
                   </SelectTrigger>
@@ -426,14 +561,19 @@ export default function LiveSessionsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-teacher">Teacher *</Label>
-                <Select value={formData.teacher_id} onValueChange={(value: string) => setFormData({ ...formData, teacher_id: value })}>
+                <Select
+                  value={formData.teacher_id}
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, teacher_id: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select teacher" />
                   </SelectTrigger>
                   <SelectContent>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
+                        {teacher.name || 'Unknown'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -446,7 +586,9 @@ export default function LiveSessionsPage() {
               <Input
                 id="edit-session_link"
                 value={formData.session_link}
-                onChange={(e) => setFormData({ ...formData, session_link: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, session_link: e.target.value })
+                }
               />
             </div>
 
@@ -457,7 +599,9 @@ export default function LiveSessionsPage() {
                   id="edit-start_time"
                   type="datetime-local"
                   value={formData.start_time}
-                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, start_time: e.target.value })
+                  }
                 />
               </div>
 
@@ -467,16 +611,28 @@ export default function LiveSessionsPage() {
                   id="edit-end_time"
                   type="datetime-local"
                   value={formData.end_time}
-                  onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, end_time: e.target.value })
+                  }
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setIsEditOpen(false); setSelectedSession(null); resetForm(); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditOpen(false);
+                setSelectedSession(null);
+                resetForm();
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleEdit} className="bg-blue-500 hover:bg-blue-600">
+            <Button
+              onClick={handleEdit}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
               Update Session
             </Button>
           </DialogFooter>
@@ -489,14 +645,24 @@ export default function LiveSessionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the session &quot;{selectedSession?.session_title}&quot;. This action cannot be undone.
+              This will permanently delete the session &quot;
+              {selectedSession?.session_title}&quot;. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setIsDeleteOpen(false); setSelectedSession(null); }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setIsDeleteOpen(false);
+                setSelectedSession(null);
+              }}
+            >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

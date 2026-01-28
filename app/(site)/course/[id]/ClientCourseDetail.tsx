@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { CourseFAQ } from "@/components/course/details/CourseFAQ";
 import { CourseHero } from "@/components/course/details/CourseHero";
@@ -9,13 +10,15 @@ import { CourseOverview } from "@/components/course/details/CourseOverview";
 import { CourseSyllabus } from "@/components/course/details/CourseSyllabus";
 import { InstructorSpotlight } from "@/components/course/details/InstructorSpotlight";
 import { StudentReviews } from "@/components/course/details/StudentReviews";
-import { getFaqByCourse } from "@/app/lib/course_faq.client";
-import { getLearningsByCourse } from "@/app/lib/course_learnings.client";
-import { getReviewsByCourse } from "@/app/lib/course_reviews.client";
-import { getSyllabusByCourse } from "@/app/lib/course_syllabus.client";
-import { getEnrollmentsByCourse } from "@/app/lib/enrollments.client";
-import { getCourseById } from "@/app/lib/courses.client";
-import { getProfileById } from "@/app/lib/profiles.client";
+import {
+  getFaqByCourse,
+  getLearningsByCourse,
+  getReviewsByCourse,
+  getSyllabusByCourse,
+} from "@/app/models/course-content.model";
+import { getEnrollmentsByCourse } from "@/app/models/enrollment.model";
+import { getCourseById } from "@/app/models/course.model";
+import { getProfileById } from "@/app/models/profile.model";
 import type { Database } from "@/app/lib/supabase/database.types";
 
 type CourseRow = Database["public"]["Tables"]["courses"]["Row"];
@@ -79,6 +82,7 @@ const formatReviewDate = (value?: string | null) => {
 };
 
 export function ClientCourseDetail({ courseId }: { courseId: number }) {
+  const router = useRouter();
   const [course, setCourse] = useState<CourseRow | null>(null);
   const [teacher, setTeacher] = useState<ProfileRow | null>(null);
   const [learningItems, setLearningItems] = useState<string[]>([]);
@@ -144,6 +148,11 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
   useEffect(() => {
     loadCourse();
   }, [loadCourse]);
+
+  const handleEnrollClick = () => {
+    // Redirect to login with course ID for post-login redirect
+    router.push(`/login?redirect=/dashboard/student/enroll/${courseId}`);
+  };
 
   if (loading) {
     return (
@@ -240,6 +249,10 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
     ? `${enrollmentCount.toLocaleString()} Learner${enrollmentCount === 1 ? "" : "s"}`
     : "Be the first learner";
   const levelLabel = "All Levels";
+  const priceLabel =
+    typeof course.price === "number"
+      ? `${course.price.toLocaleString()} DA`
+      : undefined;
   const heroImage = course.image ?? "/images/webdev-pic.jpg";
   const courseDescription =
     course.description ??
@@ -267,9 +280,11 @@ export function ClientCourseDetail({ courseId }: { courseId: number }) {
           duration={durationLabel}
           students={studentsLabel}
           level={levelLabel}
+          price={priceLabel}
           primaryCta="Enroll Now"
           secondaryCta="View Syllabus"
           image={heroImage}
+          onPrimaryClick={handleEnrollClick}
         />
         <CourseOverview title="Overview" content={overviewContent} />
         <CourseLearnings lessons={lessonsToDisplay} />

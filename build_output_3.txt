@@ -1,0 +1,26 @@
+
+> online-academy@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Ôû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env
+
+ ÔÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ Ô£ô Compiled successfully in 6.1s
+   Running TypeScript ...
+Failed to compile.
+
+./app/(site)/course/[id]/ClientCourseDetail.tsx:227:18
+Type error: Property 'student' does not exist on type '{ comment: string | null; course_id: number | null; created_at: string | null; deleted_at: string | null; id: number; rating: number | null; student_id: string | null; }'.
+
+  225 |   const reviewEntries = reviews.map((review) => ({
+  226 |     id: String(review.id),
+> 227 |     name: review.student?.name ?? "Anonymous Learner",
+      |                  ^
+  228 |     date: formatReviewDate(review.created_at),
+  229 |     quote:
+  230 |       review.comment?.trim() ??
+Next.js build worker exited with code: 1 and signal: null

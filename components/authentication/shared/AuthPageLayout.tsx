@@ -17,7 +17,7 @@ export default function AuthPageLayout({
     formOrder === "left" ? "lg:grid-cols-[40%_60%]" : "lg:grid-cols-[60%_40%]";
 
   return (
-    <div className="min-h-screen bg-[#F7F9FB] flex flex-col items-center justify-center py-6 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F7F9FB] flex flex-col items-center justify-center pt-20 pb-6 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-7xl flex-1 flex flex-col items-center justify-center">
         {mobileTitle}
         <div

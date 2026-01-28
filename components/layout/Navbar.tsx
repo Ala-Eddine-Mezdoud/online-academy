@@ -1,17 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createBrowserSupabase } from '@/app/lib/supabase/supabase';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const pathname = usePathname();
+    const router = useRouter();
+    const supabase = createBrowserSupabase();
+
     const isHomePage = pathname === '/';
     const isCoursePage = pathname.startsWith('/course');
     const isTeacherPage = pathname.startsWith('/teacher');
     const isAboutPage = pathname === '/about';
     const isContactPage = pathname === '/contact';
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+            
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                setUserRole(profile?.role || null);
+            }
+            setLoading(false);
+        };
+
+        checkUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            setUser(session?.user || null);
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                setUserRole(profile?.role || null);
+            } else {
+                setUserRole(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const getDashboardPath = () => {
+        switch (userRole) {
+            case 'admin': return '/dashboard/admin';
+            case 'teacher': return '/dashboard/teacher';
+            case 'student': return '/dashboard/student';
+            default: return '/dashboard';
+        }
+    };
 
     return (
         <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
@@ -76,34 +127,34 @@ export default function Navbar() {
                     </div>
 
                     <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-                        {/* Log In */}
+                        {/* Log In - white button */}
                         <a
                             href="/login"
-                            className="w-[73px] h-[40px] px-3 flex items-center justify-center
+                            className="h-[40px] px-4 flex items-center justify-center
                                         font-['Open Sans'] text-[14px] leading-[22px] font-medium
-                                        text-blue-600
-                                        bg-transparent
+                                        text-gray-700
+                                        bg-white
                                         rounded-[6px]
-                                        border-[1.5px] border-blue-600
+                                        border-[1.5px] border-gray-300
                                         transition-all duration-200
                                         hover:-translate-y-1
-                                        hover:bg-blue-50"
+                                        hover:border-gray-400"
                         >
                             Log In
                         </a>
 
-                        {/* Sign Up */}
+                        {/* Sign Up - blue button */}
                         <a
                             href="/signup"
-                            className="w-[83px] h-[40px] px-3 flex items-center justify-center
+                            className="h-[40px] px-4 flex items-center justify-center
                                         font-['Open Sans'] text-[14px] leading-[22px] font-medium
                                         text-white
-                                        bg-gradient-to-r from-blue-600 to-[#0C86D8]
+                                        bg-blue-500
                                         rounded-[6px]
                                         border-none
                                         transition-all duration-200
                                         hover:-translate-y-1
-                                        hover:from-blue-700 hover:to-[#0C86D8]"
+                                        hover:bg-blue-600"
                         >
                             Sign Up
                         </a>
@@ -179,10 +230,10 @@ export default function Navbar() {
                                 href="/login"
                                 className="w-full h-[40px] px-3 flex items-center justify-center
                                    font-['Open Sans'] text-[14px] font-medium
-                                   text-blue-600 bg-transparent
-                                   border-[1.5px] border-blue-600 rounded-[6px]
+                                   text-gray-700 bg-white
+                                   border-[1.5px] border-gray-300 rounded-[6px]
                                    transition-all duration-200
-                                   hover:bg-blue-50"
+                                   hover:border-gray-400"
                             >
                                 Log In
                             </a>
@@ -191,10 +242,10 @@ export default function Navbar() {
                                 className="w-full h-[40px] px-3 flex items-center justify-center
                                    font-['Open Sans'] text-[14px] font-medium
                                    text-white
-                                   bg-gradient-to-r from-blue-600 to-[#0C86D8]
+                                   bg-blue-500
                                    rounded-[6px]
                                    transition-all duration-200
-                                   hover:from-blue-700 hover:to-[#0C86D8]"
+                                   hover:bg-blue-600"
                             >
                                 Sign Up
                             </a>

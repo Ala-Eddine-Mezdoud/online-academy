@@ -5,8 +5,7 @@ import { Users, GraduationCap, BookOpen, TrendingUp, TriangleAlert } from 'lucid
 import { StatsCard } from '@/components/admin/StatsCard';
 import { getAllProfiles } from '@/app/lib/profiles.client';
 import { getAllCourses } from '@/app/lib/courses.client';
-import { getAllEnrollments } from '@/app/lib/enrollments.client';
-import { checkAdminConfig } from '@/app/lib/actions';
+import { adminGetAllEnrollments, checkAdminConfig } from '@/app/lib/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/admin/ui/alert';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts';
 
@@ -36,6 +35,7 @@ export default function DashboardPage() {
   });
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [popularCourses, setPopularCourses] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<RegistrationData[]>([]);
   const [enrollmentData, setEnrollmentData] = useState<EnrollmentData[]>([]);
   const [averageProgress, setAverageProgress] = useState(0);
@@ -56,7 +56,7 @@ export default function DashboardPage() {
           getAllProfiles('student'),
           getAllProfiles('teacher'),
           getAllCourses(),
-          getAllEnrollments(),
+          adminGetAllEnrollments(),
           checkAdminConfig()
         ]);
 
@@ -70,6 +70,9 @@ export default function DashboardPage() {
           courses: coursesData?.length || 0,
           enrollments: enrollmentsData?.length || 0
         });
+
+        // Store teachers for lookup
+        setTeachers(teachersData || []);
 
         // Calculate trends (compare this month vs last month)
         const now = new Date();
@@ -232,10 +235,11 @@ export default function DashboardPage() {
       {configError && (
         <Alert variant="destructive" className="mb-6">
           <TriangleAlert className="h-4 w-4" />
-          <AlertTitle>Configuration Error</AlertTitle>
+          <AlertTitle>User Creation Disabled</AlertTitle>
           <AlertDescription>
-            The Supabase Service Role Key is missing. You will not be able to create new users (Students/Teachers).
-            Please add <code>SUPABASE_SERVICE_ROLE_KEY</code> to your <code>.env</code> file.
+            The Supabase Service Role Key is missing. Creating new users (Students/Teachers) is disabled.
+            Other admin operations (viewing, editing, deleting) will work using your RLS policies.
+            To enable user creation, add <code>SUPABASE_SERVICE_ROLE_KEY</code> to your <code>.env</code> file.
           </AlertDescription>
         </Alert>
       )}
@@ -245,25 +249,25 @@ export default function DashboardPage() {
           title="Total Students"
           value={stats.students}
           icon={Users}
-          trend={{ value: `${trends.students.value}% From last month`, isPositive: trends.students.isPositive }}
+          trend={{ value: `${trends.students.value}% From last month`, isPositive: true }}
         />
         <StatsCard
           title="Total Teachers"
           value={stats.teachers}
           icon={GraduationCap}
-          trend={{ value: `${trends.teachers.value}% From last month`, isPositive: trends.teachers.isPositive }}
+          trend={{ value: `${trends.teachers.value}% From last month`, isPositive: true }}
         />
         <StatsCard
           title="Total Courses"
           value={stats.courses}
           icon={BookOpen}
-          trend={{ value: `${trends.courses.value}% From last month`, isPositive: trends.courses.isPositive }}
+          trend={{ value: `${trends.courses.value}% From last month`, isPositive: true }}
         />
         <StatsCard
           title="Total Enrollments"
           value={stats.enrollments}
           icon={TrendingUp}
-          trend={{ value: `${trends.enrollments.value}% From last month`, isPositive: trends.enrollments.isPositive }}
+          trend={{ value: `${trends.enrollments.value}% From last month`, isPositive: true }}
         />
       </div>
 
@@ -462,12 +466,11 @@ export default function DashboardPage() {
             {recentStudents.map((student) => (
               <div key={student.id} className="flex items-center justify-between py-2">
                 <div>
-                  <p className="font-medium text-gray-900">{student.role_title || 'Unknown Name'}</p>
+                  <p className="font-medium text-gray-900">{student.name || 'Unknown Name'}</p>
                   <p className="text-sm text-gray-500">{student.wilaya || 'No location'}</p>
                 </div>
                 <span className="text-sm text-gray-500">
-                  {/* We don't have enrollment count per student easily available without more queries, skipping for now */}
-                  Student
+                  {student.email || 'Student'}
                 </span>
               </div>
             ))}
@@ -477,17 +480,20 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Popular Courses</h3>
           <div className="space-y-4">
-            {popularCourses.map((course) => (
-              <div key={course.id} className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-gray-900">{course.title}</p>
-                  <p className="text-sm text-gray-500">ID: {course.id}</p>
+            {popularCourses.map((course) => {
+              const teacher = teachers.find(t => t.id === course.teacher_id);
+              return (
+                <div key={course.id} className="flex items-center justify-between py-2">
+                  <div>
+                    <p className="font-medium text-gray-900">{course.title}</p>
+                    <p className="text-sm text-gray-500">By: {teacher?.name || 'Unknown Teacher'}</p>
+                  </div>
+                  <span className="text-sm text-blue-600">
+                    {course.enrollments_count} students
+                  </span>
                 </div>
-                <span className="text-sm text-blue-600">
-                  {course.enrollments_count} students
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

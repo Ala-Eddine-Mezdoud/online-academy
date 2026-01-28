@@ -1,6 +1,9 @@
 import { Poppins, Inter } from "next/font/google";
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { QueryProvider } from "@/app/providers/QueryProvider";
+
 import "../globals.css";
 
 const poppins = Poppins({
@@ -25,9 +28,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-inter">
-        <Navbar />
-        {children}
-        <Footer />
+
+        <QueryProvider>
+          <Navbar />
+          <main className="mt-6 mx-4">
+            {children}
+          </main>
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );
